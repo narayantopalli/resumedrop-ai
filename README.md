@@ -1,6 +1,30 @@
+# ResumeDrop AI
+
+© 2025 resumedrop.ai. All rights reserved.
+
+A networking platform that allows users to upload their resumes and discover other users with similar skills, experience, and interests using AI-powered matching.
+
+**Created by:** Narayan Topalli (Cornell '28)
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
+
+### Environment Setup
+
+1. Create a `.env.local` file in the root directory with your Supabase credentials:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+You can find these values in your Supabase project dashboard under Settings > API.
+
+### Development
 
 First, run the development server:
 

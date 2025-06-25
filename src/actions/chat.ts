@@ -1,0 +1,245 @@
+'use server';
+
+import OpenAI from 'openai';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Initialize OpenAI client
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+const MAX_PROMPT_TOKENS = 1024;
+const CHARS_PER_TOKEN = 4;
+const MAX_PROMPT_CHARS = MAX_PROMPT_TOKENS * CHARS_PER_TOKEN;
+
+const formatEdits = (text: string): { original: string; suggested: string; }[] => {
+  const edits: { original: string; suggested: string; }[] = [];
+  
+  // Look for the @@edits@@ section
+  const editsMatch = text.match(/@@edits@@([\s\S]*?)(?=@@|$)/);
+  
+  if (!editsMatch) {
+    return edits;
+  }
+  
+  const editsSection = editsMatch[1];
+  
+  // Parse JSON objects in the edits section
+  const jsonMatches = editsSection.match(/\{[^}]+\}/g);
+  
+  if (jsonMatches) {
+    for (const jsonMatch of jsonMatches) {
+      try {
+        const edit = JSON.parse(jsonMatch);
+        if (edit.original && edit.suggested) {
+          edits.push({
+            original: edit.original,
+            suggested: edit.suggested
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to parse edit JSON:', jsonMatch);
+      }
+    }
+  }
+  
+  return edits;
+};
+
+// Function to format AI response with proper markdown styling
+const formatAIResponse = (text: string): string => {
+  // remove the @@edits@@ section and everything after it
+  const textWithoutEdits = text.split('@@edits@@')[0].trim();
+  
+  return textWithoutEdits
+    // Bold text with ** or __
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+    // Italic text with * or _
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    // Bullet points and numbered lists
+    .replace(/^[-*]\s+(.+)$/gm, '• $1')
+    .replace(/^\d+\.\s+(.+)$/gm, (match, content) => {
+      const numberMatch = match.match(/^\d+/);
+      const number = numberMatch ? numberMatch[0] : '1';
+      return `${number}. ${content}`;
+    })
+    // Headers - handle all levels (1-6)
+    .replace(/^#{6}\s+(.+)$/gm, '<h6 class="text-sm font-semibold mt-2 mb-1">$1</h6>')
+    .replace(/^#{5}\s+(.+)$/gm, '<h5 class="text-base font-semibold mt-2 mb-1">$1</h5>')
+    .replace(/^#{4}\s+(.+)$/gm, '<h4 class="text-lg font-semibold mt-3 mb-2">$1</h4>')
+    .replace(/^#{3}\s+(.+)$/gm, '<h3 class="text-lg font-semibold mt-3 mb-2">$1</h3>')
+    .replace(/^#{2}\s+(.+)$/gm, '<h2 class="text-xl font-bold mt-4 mb-3">$1</h2>')
+    .replace(/^#{1}\s+(.+)$/gm, '<h1 class="text-2xl font-bold mt-5 mb-4">$1</h1>')
+    // Code blocks
+    .replace(/```([\s\S]*?)```/g, '<code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono">$1</code>')
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">$1</code>')
+    // Line breaks
+    .replace(/\n/g, '<br />');
+};
+
+export const getChatResponse = async (resumeText: string, pastMessages: string, message: string, userId: string): Promise<{rawResponse: string, formattedResponse: string, edits: {original: string, suggested: string}[]}> => {
+    try {
+        const { data: userMetadata, error: userMetadataError } = await supabase.from('profiles').select('responses_left').eq('id', userId);
+        if (userMetadataError) {
+            console.error('Error getting user metadata:', userMetadataError);
+            throw new Error('Failed to get user metadata');
+        }
+        if (userMetadata[0].responses_left <= 0) {
+            throw new Error('You have reached the maximum number of responses');
+        }
+
+        const message_length = message.length;
+        if (message_length > MAX_PROMPT_CHARS) {
+            console.log("Message is too long");
+            throw new Error('Message is too long');
+        }
+        const PROMPT_CHARS_LEFT = MAX_PROMPT_CHARS - message_length;
+        const message_history_length = pastMessages.length;
+        const past_messages = message_history_length > PROMPT_CHARS_LEFT ? pastMessages.substring(message_history_length - PROMPT_CHARS_LEFT) : pastMessages;
+
+        const instructions = `
+            You are a professional resume reviewer. When analyzing a resume, you should focus on improving the following:
+            - Clarity and readability
+            - Specificity and quantitatively describing contributions or achievements
+            - Use of action verbs and quantifiable metrics
+            - Use of specific examples and results
+            - Use of specific tools, technologies, or frameworks
+            For every point you must give in text quote examples of how the user can improve.
+            
+            Format your responses using markdown:
+            - Use **bold** for emphasis and section headers
+            - Use bullet points (- or *) for lists
+            - Use numbered lists (1., 2., etc.) for sequential items
+            - Use ### for subsection headers
+            - Use \`code\` for technical terms or specific tools
+            - Structure your response with clear sections and proper formatting
+
+            Do not have a section titled Suggested Edits, or anything like that.
+            
+            If you are suggesting edits, add them in the following format:
+            - Respond with a list of suggested edits that are not under a section header, or any other formatting
+            - These edits should be under the keyword @@edits@@
+            - Each edit should be formatted as:
+                {
+                    "original": "The original text",
+                    "suggested": "The suggested edit"
+                }
+
+            Please be as concise as possible!
+        `;
+        const context = `
+            This is the extracted text from the user's docx resume:
+            --------------------------------
+            ${resumeText}
+            --------------------------------
+        `;
+        const past_messages_context = `
+            These are the past messages between the you and the user:
+            --------------------------------
+            ${past_messages}
+            --------------------------------
+        `;
+        const fullResponse = await response(instructions, context, past_messages_context, message);
+        
+        // Remove edits section from raw response
+        const rawResponse = fullResponse.split('@@edits@@')[0].trim();
+
+        const { data: updatedUserMetadata, error: updatedUserMetadataError } = await supabase.from('profiles').update({responses_left: userMetadata[0].responses_left - 1}).eq('id', userId);
+        if (updatedUserMetadataError) {
+            console.error('Error updating user metadata:', updatedUserMetadataError);
+            throw new Error('Failed to update user metadata');
+        }
+        
+        return {
+            rawResponse: rawResponse,
+            formattedResponse: formatAIResponse(fullResponse),
+            edits: formatEdits(fullResponse)
+        };
+    } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        throw new Error('Failed to get response from AI');
+    }
+}
+
+export const response = async (instructions: string, context: string, past_prompt_context: string, prompt: string): Promise<string> => {
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OpenAI API key is not configured');
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: instructions,
+        },
+        {
+          role: "system",
+          content: context,
+        },
+        {
+          role: "system",
+          content: past_prompt_context,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      max_tokens: 500,
+      temperature: 0.7,
+    });
+
+    return completion.choices[0]?.message?.content || 'No response generated';
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    throw new Error('Failed to get response from AI');
+  }
+};
+
+export const saveChatsToDatabase = async (userId: string, chats: any) => {
+  const { data, error } = await supabase.from('chats').upsert({
+    id: userId,
+    chats: chats
+  });
+
+  if (error) {
+    console.error('Error saving chats to database:', error);
+    throw new Error('Failed to save chats to database');
+  }
+
+  return data;
+}
+
+export const getChatsFromDatabase = async (userId: string) => {
+  const { data, error } = await supabase.from('chats').select('chats').eq('id', userId);
+
+  if (data === undefined || data === null || data.length === 0) {
+    return null;
+  }
+
+  if (error) {
+    console.error('Error getting chats from database:', error);
+    throw new Error('Failed to get chats from database');
+  }
+
+  return data[0].chats;
+}
+
+export const deleteChatsFromDatabase = async (userId: string) => {
+  const { data, error } = await supabase.from('chats').delete().eq('id', userId);
+
+  if (error) {
+    console.error('Error deleting chats from database:', error);
+    throw new Error('Failed to delete chats from database');
+  }
+
+  return data;
+}
