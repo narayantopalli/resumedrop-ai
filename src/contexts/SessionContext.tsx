@@ -148,25 +148,6 @@ export function SessionProvider({ children }: SessionProviderProps) {
     return () => subscription.unsubscribe()
   }, [mounted]);
 
-  // Clear localStorage when tab/window is closed (only after mounting)
-  useEffect(() => {
-    if (!mounted || typeof window === 'undefined') return;
-
-    const handleBeforeUnload = () => {
-      try {
-        localStorage.removeItem('activeTab');
-      } catch (error) {
-        console.warn('Failed to clear localStorage:', error);
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [mounted]);
-
   // Sign out function
   const signOut = async () => {
     console.log('signing out');
@@ -186,7 +167,6 @@ export function SessionProvider({ children }: SessionProviderProps) {
         // Clear all localStorage fields
         if (typeof window !== 'undefined') {
           try {
-            localStorage.removeItem('activeTab');
             localStorage.removeItem('editHistory');
             localStorage.removeItem('currentHistoryIndex');
             // Clear any other localStorage items that might exist

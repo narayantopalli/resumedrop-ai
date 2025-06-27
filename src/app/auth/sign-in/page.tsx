@@ -19,6 +19,18 @@ export default function SignInPage() {
     setIsLoading(true);
     setError("");
     
+    // Clear localStorage when sign-in button is pressed
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('editHistory');
+        localStorage.removeItem('currentHistoryIndex');
+        // Clear any other localStorage items that might exist
+        localStorage.clear();
+      } catch (error) {
+        console.warn('Failed to clear localStorage on sign in:', error);
+      }
+    }
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

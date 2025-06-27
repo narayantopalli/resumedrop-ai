@@ -27,7 +27,7 @@ const templatePrompts = [
   {
     id: 'review',
     title: 'Grade my resume',
-    prompt: 'Can you grade my resume and provide feedback on its content, effectiveness, and specificity. Grade should be on the letter scale.'
+    prompt: 'Can you grade my resume and provide feedback on its content, effectiveness, and specificity. Give a letter and a numerical grade.'
   },
   {
     id: 'keywords',

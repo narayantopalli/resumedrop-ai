@@ -45,6 +45,34 @@ export default function ResumePreview({
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
+  // Auto-clear error messages after 1 second
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (docxError) {
+      const timer = setTimeout(() => {
+        setDocxError(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [docxError]);
+
+  useEffect(() => {
+    if (publishError) {
+      const timer = setTimeout(() => {
+        setPublishError(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [publishError]);
+
   // load edit history from local storage
   useEffect(() => {
     const savedHistory = localStorage.getItem('editHistory');
@@ -106,8 +134,23 @@ export default function ResumePreview({
     setError(null);
     try {
       if (!session?.user?.id) {
-        setError('Please sign in to save the edited text.');
-        setIsSaving(false);
+        if (editHistory && currentHistoryIndex !== null) {
+          const newHistoryItem = {
+            original: resumeExtractedText || '',
+            suggested: editableText,
+            appliedText: editableText
+          };
+          
+          // Remove any future history items if we're not at the end
+          const newHistory = editHistory.slice(0, currentHistoryIndex + 1);
+          newHistory.push(newHistoryItem);
+          
+          setEditHistory(newHistory);
+          setCurrentHistoryIndex(newHistory.length - 1);
+        }
+        
+        setResumeExtractedText(editableText);
+        setIsEditing(false);
         return;
       }
       
@@ -154,7 +197,12 @@ export default function ResumePreview({
   };
 
   const handleDownloadDOCX = async () => {
-    if (userMetadata?.saves_left <= 0 || !session?.user?.id) {
+    if (!session?.user?.id) {
+      setDocxError('Please sign in to download your resume.');
+      return;
+    }
+
+    if (userMetadata?.saves_left <= 0) {
       setDocxError('You have no saves left today.');
       return;
     }
@@ -233,7 +281,7 @@ export default function ResumePreview({
 
   // Undo last edit
   const undoEdit = async () => {
-    if (currentHistoryIndex === null || currentHistoryIndex < 0 || !session?.user?.id || !editHistory) return;
+    if (currentHistoryIndex === null || currentHistoryIndex < 0 || !editHistory) return;
 
     setIsApplyingEdit(true);
     try {
@@ -241,10 +289,15 @@ export default function ResumePreview({
       const previousText = currentHistoryIndex > 0 
         ? editHistory[currentHistoryIndex - 1].appliedText 
         : resumeExtractedText?.replace(historyItem.suggested, historyItem.original) || '';
-
-      const updateResult = await updateResumeExtractedText(session.user.id, previousText);
+      if (session?.user?.id) {
+        const updateResult = await updateResumeExtractedText(session.user.id, previousText);
       
-      if (updateResult.success) {
+        if (updateResult.success) {
+          setResumeExtractedText(previousText);
+          setEditableText(previousText);
+          setCurrentHistoryIndex(currentHistoryIndex - 1);
+        }
+      } else {
         setResumeExtractedText(previousText);
         setEditableText(previousText);
         setCurrentHistoryIndex(currentHistoryIndex - 1);
@@ -258,14 +311,20 @@ export default function ResumePreview({
 
   // Redo last undone edit
   const redoEdit = async () => {
-    if (currentHistoryIndex === null || !editHistory || currentHistoryIndex >= editHistory.length - 1 || !session?.user?.id) return;
+    if (currentHistoryIndex === null || !editHistory || currentHistoryIndex >= editHistory.length - 1) return;
 
     setIsApplyingEdit(true);
     try {
       const historyItem = editHistory[currentHistoryIndex + 1];
-      const updateResult = await updateResumeExtractedText(session.user.id, historyItem.appliedText);
-      
-      if (updateResult.success) {
+      if (session?.user?.id) {
+        const updateResult = await updateResumeExtractedText(session.user.id, historyItem.appliedText);
+        
+        if (updateResult.success) {
+          setResumeExtractedText(historyItem.appliedText);
+          setEditableText(historyItem.appliedText);
+          setCurrentHistoryIndex(currentHistoryIndex + 1);
+        }
+      } else {
         setResumeExtractedText(historyItem.appliedText);
         setEditableText(historyItem.appliedText);
         setCurrentHistoryIndex(currentHistoryIndex + 1);
