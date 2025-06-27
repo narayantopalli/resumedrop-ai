@@ -115,36 +115,45 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
         const message_history_length = pastMessages.length;
         const past_messages = message_history_length > PROMPT_CHARS_LEFT ? pastMessages.substring(message_history_length - PROMPT_CHARS_LEFT) : pastMessages;
 
+        let summary_text = 'No Previous Conversation History';
+        if (past_messages.length > 10) {
+          const summary = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo-0125",
+            temperature: 0.1,
+            max_tokens: 256,
+            messages: [
+              { role: "system", content: "Summarise this chat in <150 words to be used as context for the following prompt: " + message },
+              { role: "user", content: past_messages }
+            ]
+          });
+          summary_text = summary.choices[0]?.message?.content || 'No Previous Conversation History';
+        }
+
         const instructions = `
-            You are a professional resume reviewer. When analyzing a resume, you should focus on improving the following:
-            - Clarity and readability
-            - Specificity and quantitatively describing contributions or achievements
-            - Use of action verbs and quantifiable metrics
-            - Use of specific examples and results
-            - Use of specific tools, technologies, or frameworks
-            For every analysis you must give in text quote examples of how the user can improve.
-            For as many of your suggestions as possible, give a list of edits that the user can make to improve their resume.
+            You are a professional resume reviewer. Focus on:
+            • Specific, quantified achievements
+            • Action verbs & metrics
+            • Concrete tools / frameworks
+
+            Do not focus on formatting, just focus on the content!
             
             Format your responses using markdown:
             - Use **bold** for emphasis and section headers
             - Use bullet points (- or *) for lists
             - Use numbered lists (1., 2., etc.) for sequential items
-            - Use ### for subsection headers
-            - Use \`code\` for technical terms or specific tools
             - Structure your response with clear sections and proper formatting
 
-            Do not have a section titled Suggested Edits, or anything like that.
-            
-            If you are suggesting edits, add them in the following format:
-            - Respond with a list of suggested edits that are not under a section header, or any other formatting
-            - These edits should be under the keyword @@edits@@
-            - Each edit should be formatted as:
-                {
-                    "original": "The original text",
-                    "suggested": "The suggested edit"
-                }
+            For every analysis you must give in-text edits of how the user can improve.
+            Suggest in-text edits in the following way:
+            - Suggest 3-5 in-text edits to the user's resume
+            - These edits should be under the keyword @@edits@@ in the following json format:
+            {    
+              { "original": "The original text", "suggested": "The suggested edit" },
+              { "original": "The original text", "suggested": "The suggested edit" },
+              ...
+            }
 
-            Please be as concise as possible!
+            Be concise.
         `;
         const context = `
             This is the extracted text from the user's docx resume:
@@ -153,9 +162,9 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             --------------------------------
         `;
         const past_messages_context = `
-            These are the past messages between the you and the user:
+            This is a summary of the past messages between the you and the user:
             --------------------------------
-            ${past_messages}
+            ${summary_text}
             --------------------------------
         `;
         const fullResponse = await response(instructions, context, past_messages_context, message);
@@ -203,7 +212,7 @@ export const response = async (instructions: string, context: string, past_promp
         },
       ],
       max_tokens: 1000,
-      temperature: 0.7,
+      temperature: 0.3,
     });
 
     return completion.choices[0]?.message?.content || 'No response generated';
