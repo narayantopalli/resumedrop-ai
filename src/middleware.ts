@@ -75,14 +75,15 @@ export async function middleware(req: NextRequest) {
       '/terms',
       '/forgot-password',
       '/reset-password',
-      '/auth/callback'
+      '/auth/callback',
+      '/favicon.ico'
     ];
 
     // Define protected routes that require authentication
     const protectedRoutes = ['/settings'];
 
     // Define routes that should be blocked for unauthenticated users
-    const blockedRoutes = ['/favicon.ico', '/_next'];
+    const blockedRoutes = ['/_next'];
     
     // Define auth routes that should redirect authenticated users
     const authRoutes = ['/sign-in', '/sign-up', '/forgot-password'];
