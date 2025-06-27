@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiMenu, FiX, FiUser, FiSettings, FiLogOut, FiUpload, FiHome } from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiSettings, FiLogOut, FiUpload, FiHome, FiEdit3 } from "react-icons/fi";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "@/contexts/SessionContext";
 import Avatar from "@/components/Avatar";
@@ -81,19 +81,30 @@ export default function HamburgerMenu() {
 
   const userProfile = userMetadata ? (
     <div className="flex items-center">
-      <Avatar
-        src={avatarUrl}
-        name={userMetadata?.name}
-        size="sm"
-      />
-      <div className="hidden sm:block ml-3">
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
-          {userMetadata?.name || "User"}
-        </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {userMetadata?.college}
-        </p>
-      </div>
+      
+      {avatarUrl && (userMetadata?.contactInfo?.linkedin || userMetadata?.contactInfo?.github || userMetadata?.contactInfo?.instagram || userMetadata?.contactInfo?.twitter || userMetadata?.contactInfo?.phone) ? (<>
+        <Avatar
+          src={avatarUrl}
+          name={userMetadata?.name}
+          size="sm"
+        />
+        <div className="hidden sm:block ml-3 mr-2">
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
+            {userMetadata?.name || "User"}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {userMetadata?.college}
+          </p>
+        </div>
+      </>) : (
+        <button
+          onClick={() => router.push('/settings')}
+          className="flex items-center gap-2 px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors font-medium text-sm border border-orange-200 dark:border-orange-700"
+        >
+          <FiEdit3 className="w-4 h-4" />
+          <span className="sm:inline">Set Up Profile</span>
+        </button>
+      )}
     </div>
   ) : (
     <div className="flex items-center">
@@ -114,7 +125,7 @@ export default function HamburgerMenu() {
       {/* Hamburger Button */}
       <button
         onClick={handleMenuToggle}
-        className="ml-4 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
+        className="ml-2 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors"
         aria-label="Toggle menu"
       >
         {isOpen ? (
