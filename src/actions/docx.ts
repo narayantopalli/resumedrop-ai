@@ -150,10 +150,10 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
 
     let zip: PizZip;
     try {
-      const templateContent = fs.readFileSync(path.resolve('public/assets/resume-template.docx'));
+      const templateContent = fs.readFileSync(path.resolve('./public', 'resume-template.docx'));
       zip = new PizZip(templateContent);
     } catch (error) {
-      return { success: false, error: 'Template file not found' + fs.readdirSync(process.cwd()) + error};
+      return { success: false, error: 'Template file not found' };
     }
 
     // Create docxtemplater instance
