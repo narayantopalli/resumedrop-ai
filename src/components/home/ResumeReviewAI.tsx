@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getChatResponse, getChatsFromDatabase, saveChatsToDatabase, deleteChatsFromDatabase } from '@/actions/chat';
 import { useSession } from '@/contexts/SessionContext';
 import { updateResumeExtractedText } from '@/actions/resume';
-import { FiRotateCcw, FiRotateCw, FiCheck, FiX } from 'react-icons/fi';
+import { FiRotateCcw, FiRotateCw, FiCheck, FiX, FiZap } from 'react-icons/fi';
 
 interface ChatMessage {
   id: string;
@@ -19,7 +19,42 @@ interface ResumeReviewAIProps {
   userMetadata?: any;
   resumeText: string | null;
   setUserMetadata: any;
+  matches: any[];
 }
+
+// Template prompts for quick access
+const templatePrompts = [
+  {
+    id: 'review',
+    title: 'Grade my resume',
+    prompt: 'Can you grade my resume and provide feedback on its content, effectiveness, and specificity. Grade should be on the letter scale.'
+  },
+  {
+    id: 'keywords',
+    title: 'Optimize for keywords',
+    prompt: 'Help me optimize my resume with relevant keywords for my target industry and job roles.'
+  },
+  {
+    id: 'suggestions',
+    title: 'Give me suggestions for each section',
+    prompt: 'Give me a list of edits that I can make to improve each section of my resume.'
+  },
+  {
+    id: 'skills',
+    title: 'Skills section review',
+    prompt: 'Review my skills section and suggest improvements or additional relevant skills I should include.'
+  },
+  {
+    id: 'summary',
+    title: 'Write professional summary',
+    prompt: 'Help me write a compelling professional summary or objective statement for my resume.'
+  },
+  {
+    id: 'ats',
+    title: 'ATS optimization',
+    prompt: 'How can I optimize my resume to pass through Applicant Tracking Systems (ATS)?'
+  }
+];
 
 // Component to display suggested edits in a diff-like format
 const SuggestedEdits = ({ 
@@ -95,7 +130,7 @@ const SuggestedEdits = ({
   );
 };
 
-export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetadata }: ResumeReviewAIProps) {
+export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetadata, matches }: ResumeReviewAIProps) {
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [inputText, setInputText] = useState('');
@@ -205,6 +240,41 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleTemplateClick = async (prompt: string) => {
+    if (isAnalyzing || !resumeText || userMetadata?.responses_left <= 0) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      HTMLContent: prompt,
+      rawContent: prompt
+    };
+    setIsAnalyzing(true);
+
+    const message_history = messages?.map(message => `${message.type === 'user' ? 'Them: ' : 'You: '}${message.rawContent}`).join('\n') || '';
+    setMessages(prev => [...(prev || []), userMessage]);
+
+    const {rawResponse, formattedResponse, edits} = await getChatResponse(resumeText, message_history, prompt, userMetadata.id);
+
+    const validEdits = edits.filter(edit => resumeText.includes(edit.original));
+
+    const aiMessage: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      type: 'ai',
+      HTMLContent: formattedResponse,
+      rawContent: rawResponse,
+      edits: validEdits
+    };
+
+    setUserMetadata((prev: any) => ({
+      ...prev,
+      responses_left: prev.responses_left - 1
+    }));
+
+    setMessages(prev => [...(prev || []), aiMessage]);
+    setIsAnalyzing(false);
   };
 
   const handleDeleteChats = async () => {
@@ -353,8 +423,30 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
         )}
       </div>
 
+      {/* Template Prompts */}
+      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 relative mb-14">
+        <div className="absolute top-full left-0 right-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 dark:from-blue-600 dark:via-indigo-600 dark:to-purple-600 z-10">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide p-3">
+              {templatePrompts.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => handleTemplateClick(template.prompt)}
+                  className="group flex-shrink-0 px-3 py-2 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-xl hover:bg-white hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white transition-all duration-300 border border-white/20 dark:border-gray-600/50 hover:border-white/40 dark:hover:border-gray-500/70 hover:shadow-lg hover:scale-105 whitespace-nowrap relative overflow-hidden backdrop-blur-sm"
+                  title={template.prompt}
+                >
+                  <div className="flex items-center gap-2 relative z-10">
+                    <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300"></div>
+                    <span>{template.title}</span>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-600/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
+              ))}
+            </div>
+        </div>
+      </div>
+
       {/* Chat Input */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="p-4 pt-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex gap-2">
           <textarea
             value={inputText}

@@ -1,9 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+'use server';
+
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import fs from 'fs';
 import path from 'path';
 import OpenAI from 'openai';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,7 +28,7 @@ async function parseResumeText(resumeText: string): Promise<any> {
                     "email": // their email,
                     "phone": // their phone number, if they don't have a phone number, could be another social media contact,
                     "linkedin": // their linkedin profile,
-                    "website": // could be their website, github, etc.
+                    "websites": [{"website": // could be their personal website, github, etc.}, ...]
                     "university_college": // their university and the college within,
                     "university_location": // their university location, state and city,
                     "degree": // their degree, ie. Bachelor of Science in Computer Science,
@@ -107,7 +114,7 @@ async function parseResumeText(resumeText: string): Promise<any> {
                 university_location: '',
                 degree: '',
                 graduation: '',
-                gpa: 'None',
+                gpa: '',
                 relevant_courses: '',
                 skills: [],
                 experiences: [],
@@ -119,25 +126,36 @@ async function parseResumeText(resumeText: string): Promise<any> {
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function generateDocx(text: string, fileName: string = 'resume.docx', userId: string): Promise<{ success: boolean; data?: string; error?: string }> {
+  let userMetadata: any;
   try {
-    const { text, fileName = 'resume.docx' } = await request.json();
-
     if (!text) {
-      return NextResponse.json(
-        { error: 'No text provided' },
-        { status: 400 }
-      );
+      return { success: false, error: 'No text provided' };
     }
+
+    // get saves left
+    const { data: userData, error: userMetadataError } = await supabase.from('profiles').select('saves_left').eq('id', userId).single();
+    if (userMetadataError) {
+      console.error('Error getting user metadata:', userMetadataError);
+      throw new Error('Failed to get user metadata');
+    }
+
+    userMetadata = userData;
+
+    if (userMetadata.saves_left <= 0) {
+      return { success: false, error: 'You have no saves left.' };
+    }
+
+    // update saves left
+    await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
 
     // Read the template file
     const templatePath = path.join(process.cwd(), 'src', 'app', 'templates', 'resume-template.docx');
     
     if (!fs.existsSync(templatePath)) {
-      return NextResponse.json(
-        { error: 'Template file not found' },
-        { status: 500 }
-      );
+      // update saves left
+      await supabase.from('profiles').update({ saves_left: userMetadata.saves_left + 1 }).eq('id', userId);
+      return { success: false, error: 'Template file not found' };
     }
 
     const templateContent = fs.readFileSync(templatePath);
@@ -157,7 +175,7 @@ export async function POST(request: NextRequest) {
       email: resumeData.email || '**Add email here**',
       phone: resumeData.phone || '**Add phone number here**',
       linkedin: resumeData.linkedin || '**Add linkedin profile here**',
-      website: resumeData.website || '**Add website here**',
+      websites: resumeData.websites || '**Add personal websites here**',
       university_college: resumeData.university_college || '**Add university and college here**',
       university_location: resumeData.university_location || '**Add university location here**',
       degree: resumeData.degree || '**Add degree here**',
@@ -177,35 +195,20 @@ export async function POST(request: NextRequest) {
     // Get the generated document as a buffer
     const buffer = doc.getZip().generate({ type: 'nodebuffer' });
 
-    // Return the DOCX file
-    return new NextResponse(buffer, {
-      headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-      },
-    });
+    // Convert buffer to base64 string for serialization
+    const base64Data = buffer.toString('base64');
+
+    return { success: true, data: base64Data };
 
   } catch (error) {
     console.error('DOCX generation error:', error);
-    
+    // update saves left
+    await supabase.from('profiles').update({ saves_left: userMetadata.saves_left + 1 }).eq('id', userId);
     // Provide more specific error messages
     if (error instanceof SyntaxError && error.message.includes('JSON')) {
-      return NextResponse.json(
-        { error: 'Failed to parse resume data. The AI model returned invalid JSON. Please try again.' },
-        { status: 500 }
-      );
+      return { success: false, error: 'Failed to parse resume data. The AI model returned invalid JSON. Please try again.' };
     }
     
-    return NextResponse.json(
-      { error: 'Failed to generate DOCX. Please check the template and data format.' },
-      { status: 500 }
-    );
+    return { success: false, error: 'Failed to generate DOCX. Please check the template and data format.' };
   }
-}
-
-export async function GET() {
-  return NextResponse.json(
-    { message: 'Use POST method with text data to generate DOCX' },
-    { status: 405 }
-  );
-}
+} 

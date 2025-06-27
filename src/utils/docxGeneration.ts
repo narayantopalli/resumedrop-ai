@@ -1,3 +1,5 @@
+import { generateDocx } from '@/actions/docx';
+
 export interface GenerateDOCXResult {
   success: boolean;
   url?: string;
@@ -6,7 +8,8 @@ export interface GenerateDOCXResult {
 
 export const generateDOCXFromText = async (
   text: string,
-  fileName: string = 'resume.docx'
+  fileName: string = 'resume.docx',
+  userId: string
 ): Promise<GenerateDOCXResult> => {
   if (!text) {
     return {
@@ -16,24 +19,22 @@ export const generateDOCXFromText = async (
   }
 
   try {
-    const response = await fetch('/api/generate-docx', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        fileName
-      }),
-    });
+    const result = await generateDocx(text, fileName, userId);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate DOCX');
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to generate DOCX');
     }
 
-    // Get the DOCX blob
-    const blob = await response.blob();
+    // Convert base64 string back to blob
+    const binaryString = atob(result.data!);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    const blob = new Blob([bytes], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
     
     // Create a URL for the blob
     const url = URL.createObjectURL(blob);

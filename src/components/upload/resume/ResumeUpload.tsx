@@ -86,7 +86,7 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg p-1 shadow-sm border border-neutral-100 dark:border-neutral-700">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg p-1 shadow-sm border border-neutral-100 dark:border-neutral-700 hover:shadow-lg transition-all duration-300">
         <div className="flex">
           <button
             onClick={() => setUploadMode('file')}
@@ -115,7 +115,7 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
 
       {/* File Upload Section */}
       {uploadMode === 'file' && (
-        <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 h-80">
+        <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 h-80 hover:shadow-lg transition-all duration-300">
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors h-full flex flex-col justify-center ${
               isDragOver
@@ -181,7 +181,7 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
       )}
 
       {/* Upload Requirements */}
-      <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 hover:shadow-lg transition-all duration-300">
         <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-4">
           Upload Requirements
         </h3>

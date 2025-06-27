@@ -31,6 +31,7 @@ export async function createUserProfile(userId: string, profileData: {
         name,
         email,
         college,
+        isPublic: true,
         contactInfo: {
           phone: "",
           github: "",
@@ -115,6 +116,33 @@ export async function updateUserResume(userId: string, resume_url: string) {
         error: 'Internal server error'
       };
     }
+}
+
+export async function updateUserIsPublic(userId: string, isPublic: boolean) {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ isPublic })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user isPublic:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in updateUserIsPublic:', error);
+    return {
+      success: false, 
+      error: 'Internal server error'
+    };
+  }
 }
 
 export async function updateUserProfile(userId: string, profileData: {

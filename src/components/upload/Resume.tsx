@@ -42,7 +42,7 @@ export default function ResumePage() {
         await deleteResume(userMetadata.resume_url);
         if (session?.user?.id) {
           updateUserResume(session.user.id, "");
-          const updateExtractedText = await updateResumeExtractedText(session.user.id, "");
+          const updateExtractedText = await updateResumeExtractedText(session.user.id, "", true);
           if (!updateExtractedText.success) {
             setError(updateExtractedText.error || 'Failed to save extracted text. Please try again.');
           }
@@ -114,7 +114,7 @@ export default function ResumePage() {
               // Don't fail the upload if old resume deletion fails
             }
           }
-          const updateExtractedText = await updateResumeExtractedText(session.user.id, text);
+          const updateExtractedText = await updateResumeExtractedText(session.user.id, text, true);
           if (!updateExtractedText.success) {
             setError(updateExtractedText.error || 'Failed to save extracted text. Please try again.');
           }
@@ -206,7 +206,7 @@ export default function ResumePage() {
               // Don't fail the upload if old resume deletion fails
             }
           }
-          const updateExtractedText = await updateResumeExtractedText(session.user.id, textResult.text || '');
+          const updateExtractedText = await updateResumeExtractedText(session.user.id, textResult.text || '', true);
           if (!updateExtractedText.success) {
             setError(updateExtractedText.error || 'Failed to save extracted text. Please try again.');
           }
@@ -267,7 +267,7 @@ export default function ResumePage() {
 
       {/* Text Extraction Section */}
       {(localPreviewUrl || selectedResume) && resumeExtractedText !== null && (
-        <div className="mt-8 bg-white dark:bg-neutral-800 rounded-lg p-4 sm:p-6 shadow-sm border border-neutral-100 dark:border-neutral-700">
+        <div className="mt-8 bg-white dark:bg-neutral-800 rounded-lg p-4 sm:p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 hover:shadow-lg transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h3 className="text-lg font-semibold text-primary-900 dark:text-white flex items-center gap-2">
               <FiFileText className="w-5 h-5" />

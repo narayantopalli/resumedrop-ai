@@ -6,71 +6,127 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.46.1";
 
-const getSummary = async (text: string) => {
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `
-            You are a helpful assistant that converts a resume into a few sentences summary.
-            Use specific keywords and phrases that are relevant to the resume and capture the following:
-              - Candidate's skill level
-              - Candidate's experience
-              - Candidate's projects
-              - Candidate's achievements
-              - Candidate's interests
-            Be specific and concise with sentences and don't include personally identifiable information.
-            Return as a comma separated list of sentences.
-            `
-          },
-          {
-            role: "user",
-            content: `Resume: ${text}`
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.1
-      })
-    });
+const MAX_CONCURRENT_OPENAI_REQUESTS = 3; // Limit concurrent OpenAI requests
+const OPENAI_REQUEST_DELAY = 1000; // 1 second delay between OpenAI requests
 
-    if (!openaiRes.ok) {
-      const err = await openaiRes.text();
-      throw new Error(`OpenAI error: ${err}`);
+// Simple semaphore implementation for rate limiting
+class Semaphore {
+  private permits: number;
+  private waitQueue: Array<() => void> = [];
+
+  constructor(permits: number) {
+    this.permits = permits;
+  }
+
+  async acquire(): Promise<void> {
+    if (this.permits > 0) {
+      this.permits--;
+      return Promise.resolve();
     }
+    
+    return new Promise<void>((resolve) => {
+      this.waitQueue.push(resolve);
+    });
+  }
 
-    const { choices } = await openaiRes.json();
-    const summary = choices[0].message.content;
-    return summary;
+  release(): void {
+    if (this.waitQueue.length > 0) {
+      const resolve = this.waitQueue.shift()!;
+      resolve();
+    } else {
+      this.permits++;
+    }
+  }
+}
+
+// Create a semaphore for OpenAI requests
+const openaiSemaphore = new Semaphore(MAX_CONCURRENT_OPENAI_REQUESTS);
+
+const getSummary = async (text: string) => {
+    // Acquire semaphore before making OpenAI request
+    await openaiSemaphore.acquire();
+    
+    try {
+      const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `
+              You are a helpful assistant that converts a resume into a few sentences summary.
+              Use specific keywords and phrases that are relevant to the resume and capture the following:
+                - Candidate's skill level
+                - Candidate's experience
+                - Candidate's projects
+                - Candidate's achievements
+                - Candidate's interests
+              Be specific and concise with sentences and don't include personally identifiable information.
+              Return as a comma separated list of sentences.
+              `
+            },
+            {
+              role: "user",
+              content: `Resume: ${text}`
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.1
+        })
+      });
+
+      if (!openaiRes.ok) {
+        const err = await openaiRes.text();
+        throw new Error(`OpenAI error: ${err}`);
+      }
+
+      const { choices } = await openaiRes.json();
+      const summary = choices[0].message.content;
+      return summary;
+    } finally {
+      // Always release the semaphore, even if there's an error
+      openaiSemaphore.release();
+      // Add delay after each OpenAI request
+      await new Promise(resolve => setTimeout(resolve, OPENAI_REQUEST_DELAY));
+    }
 }
 
 const getEmbedding = async (text: string) => {
-    const openaiRes = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
-      },
-      body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: text
-      })
-    });
-  
-    if (!openaiRes.ok) {
-      const err = await openaiRes.text();
-      throw new Error(`OpenAI error: ${err}`);
+    // Acquire semaphore before making OpenAI request
+    await openaiSemaphore.acquire();
+    
+    try {
+      const openaiRes = await fetch("https://api.openai.com/v1/embeddings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
+        },
+        body: JSON.stringify({
+          model: "text-embedding-3-small",
+          input: text
+        })
+      });
+    
+      if (!openaiRes.ok) {
+        const err = await openaiRes.text();
+        throw new Error(`OpenAI error: ${err}`);
+      }
+    
+      const { data } = await openaiRes.json();
+      const embedding = data[0].embedding;
+      return embedding;
+    } finally {
+      // Always release the semaphore, even if there's an error
+      openaiSemaphore.release();
+      // Add delay after each OpenAI request
+      await new Promise(resolve => setTimeout(resolve, OPENAI_REQUEST_DELAY));
     }
-  
-    const { data } = await openaiRes.json();
-    const embedding = data[0].embedding;
-    return embedding;
 }
 
 Deno.serve(async (req: Request) => {
@@ -87,9 +143,9 @@ Deno.serve(async (req: Request) => {
       token ?? ''
     );
 
-    const { data: allResumes, error: allResumesError } = await supabaseClient.from('resume_text').select('id, extraction');
+    const { data: allPublicResumes, error: allPublicResumesError } = await supabaseClient.from('resume_text').select('id, public_extraction, profile:profiles!resume-text_id_fkey(id)').eq('profile.isPublic', true);
 
-    if (allResumesError) {
+    if (allPublicResumesError) {
       return new Response(JSON.stringify({ error: 'Failed to get resumes' }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -105,14 +161,13 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const allResumeIds = allResumes.map((resume: any) => resume.id);
     const allEmbeddingIds = allEmbeddings.map((embedding: any) => embedding.id);
 
-    // Filter resumes that don't have embeddings yet and have valid extraction text
-    const resumesToInsert = allResumes.filter((resume: any) => 
+    // Filter resumes that don't have embeddings yet and have valid public_extraction text
+    const resumesToInsert = allPublicResumes.filter((resume: any) => 
       !allEmbeddingIds.includes(resume.id) && 
-      resume.extraction && 
-      resume.extraction.trim() !== ''
+      resume.public_extraction && 
+      resume.public_extraction.trim() !== ''
     );
 
     if (resumesToInsert.length === 0) {
@@ -122,50 +177,34 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const embeddings = [];
-    const errors = [];
+    const embeddings: any[] = [];
+    const errors: any[] = [];
     
-    // Process resumes in parallel with concurrency control
-    const concurrencyLimit = 5; // Limit concurrent OpenAI API calls
-    const chunks = [];
-    
-    // Split resumes into chunks for controlled concurrency
-    for (let i = 0; i < resumesToInsert.length; i += concurrencyLimit) {
-      chunks.push(resumesToInsert.slice(i, i + concurrencyLimit));
-    }
-    
-    // Process chunks sequentially, but resumes within each chunk in parallel
-    for (const chunk of chunks) {
-      const chunkPromises = chunk.map(async (resume: any) => {
-        try {
-          const summary = await getSummary(resume.extraction);
-          const embedding = await getEmbedding(summary);
-          return {
-            id: resume.id,
-            summary: summary,
-            embedding: embedding,
-            isUpdated: true
-          };
-        } catch (error) {
-          console.error(`Error processing resume ${resume.id}:`, error);
-          return { id: resume.id, error: (error as Error).message };
-        }
-      });
-      
-      const chunkResults = await Promise.all(chunkPromises);
-      
-      // Separate successful embeddings from errors
-      for (const result of chunkResults) {
-        if ('error' in result) {
-          errors.push(result);
-        } else {
-          embeddings.push(result);
-        }
+    // Process resumes in parallel with semaphore-based rate limiting
+    const processingPromises = resumesToInsert.map(async (resume: any) => {
+      try {
+        const summary = await getSummary(resume.public_extraction);
+        const embedding = await getEmbedding(summary);
+        return {
+          id: resume.id,
+          summary: summary,
+          embedding: embedding,
+          isUpdated: true
+        };
+      } catch (error) {
+        console.error(`Error processing resume ${resume.id}:`, error);
+        return { id: resume.id, error: (error as Error).message };
       }
-      
-      // Small delay between chunks to avoid overwhelming the API
-      if (chunks.indexOf(chunk) < chunks.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+    });
+    
+    const results = await Promise.all(processingPromises);
+    
+    // Separate successful embeddings from errors
+    for (const result of results) {
+      if ('error' in result) {
+        errors.push(result);
+      } else {
+        embeddings.push(result);
       }
     }
 

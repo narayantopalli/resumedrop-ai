@@ -1,0 +1,273 @@
+// Follow this setup guide to integrate the Deno language server with your editor:
+// https://deno.land/manual/getting_started/setup_your_environment
+// This enables autocomplete, go to definition, etc.
+
+// Setup type definitions for built-in Supabase Runtime APIs
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { createClient } from "jsr:@supabase/supabase-js@2.46.1";
+
+const NUM_MATCHES = 3;
+const MAX_CONCURRENT_OPENAI_REQUESTS = 3; // Limit concurrent OpenAI requests
+const OPENAI_REQUEST_DELAY = 1000; // 1 second delay between OpenAI requests
+
+// Simple semaphore implementation for rate limiting
+class Semaphore {
+  private permits: number;
+  private waitQueue: Array<() => void> = [];
+
+  constructor(permits: number) {
+    this.permits = permits;
+  }
+
+  async acquire(): Promise<void> {
+    if (this.permits > 0) {
+      this.permits--;
+      return Promise.resolve();
+    }
+    
+    return new Promise<void>((resolve) => {
+      this.waitQueue.push(resolve);
+    });
+  }
+
+  release(): void {
+    if (this.waitQueue.length > 0) {
+      const resolve = this.waitQueue.shift()!;
+      resolve();
+    } else {
+      this.permits++;
+    }
+  }
+}
+
+// Create a semaphore for OpenAI requests
+const openaiSemaphore = new Semaphore(MAX_CONCURRENT_OPENAI_REQUESTS);
+
+const getNote = async (userProfile: string, profile1: string, profile2: string, profile3: string) => {
+    // Acquire semaphore before making OpenAI request
+    await openaiSemaphore.acquire();
+    
+    try {
+      const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `
+              You are a helpful matchmaker.
+              You are given a user's profile and a list of other profiles.
+              You are to write a short and sweet note about why the user should connect with each of the other users.
+              The note should be written in second person telling the user why they should connect with the other person.
+              Include specific relevant experiences and interests of the other person.
+              The note should include a suggestion about something they could do together or connect on.
+              Please be concise and to the point.
+              Respond in JSON format with the following structure:
+              {
+                "note1": "Note about why the user should connect with person 1",
+                "note2": "Note about why the user should connect with person 2",
+                "note3": "Note about why the user should connect with person 3"
+              }
+              Do not include any other text in your response.
+              If a person is null, just return null for that note.
+              IMPORTANT: Ensure all strings are properly quoted and closed. Do not leave any unterminated strings.
+              `
+            },
+            {
+              role: "user",
+              content: `
+              User's profile: ${userProfile}
+              `
+            },
+            {
+              role: "user",
+              content: `
+              Person 1: ${profile1}
+              Person 2: ${profile2}
+              Person 3: ${profile3}
+              `
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      });
+
+      if (!openaiRes.ok) {
+        const err = await openaiRes.text();
+        throw new Error(`OpenAI error: ${err}`);
+      }
+
+      const { choices } = await openaiRes.json();
+      const summary = choices[0].message.content;
+      return JSON.parse(summary);
+    } finally {
+      // Always release the semaphore, even if there's an error
+      openaiSemaphore.release();
+      // Add delay after each OpenAI request
+      await new Promise(resolve => setTimeout(resolve, OPENAI_REQUEST_DELAY));
+    }
+}
+
+Deno.serve(async (req: Request) => {
+  try {
+    const authHeader = req.headers.get('Authorization');
+    const token      = authHeader?.replace(/^Bearer\s+/i, '');
+
+    if (!token) {
+      return new Response('Missing bearer token', { status: 401 });
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('_SUPABASE_URL') ?? '', 
+      token ?? ''
+    );
+
+    const { data: allPublicResumes, error: allPublicResumesError }
+     = await supabaseClient.from('resume_embeddings')
+    .select('id, embedding, summary, profile:profiles!resume_embeddings_id_fkey(id)')
+    .eq('profile.isPublic', true)
+    .eq('isUpdated', true)
+    .eq('isMatched', false);
+
+    if (allPublicResumesError) {
+      return new Response(JSON.stringify({ error: 'Failed to get resumes' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (!allPublicResumes || allPublicResumes.length === 0) {
+      return new Response(JSON.stringify({ 
+        success: true,
+        processed: 0,
+        message: 'No resumes to process'
+      }), { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Mark resumes as matched to avoid conflicts
+    await supabaseClient
+      .from('resume_embeddings')
+      .update({ isMatched: true })
+      .in('id', allPublicResumes.map((resume: any) => resume.id));
+
+    const orderedRandomSample = (array: any[], num: number) => {
+      const randomSample = array.sort(() => Math.random() - 0.5).slice(0, num);
+      return randomSample.sort((a: any, b: any) => a.similarity - b.similarity);
+    }
+
+    const processedMatches: any[] = [];
+    const errors: any[] = [];
+
+    // Process each resume to find matches
+    for (const resume of allPublicResumes) {
+      try {
+        const { data, error } = await supabaseClient.rpc("similar_profiles", {
+          query_embedding: resume.embedding,
+          user_id: resume.profile.id,
+          neighbors: 50,
+        });
+
+        if (error) {
+          console.error(`Error getting similar profiles for resume ${resume.id}:`, error);
+          errors.push({ resumeId: resume.id, error: error.message });
+          continue;
+        }
+
+        if (!data || data.length === 0) {
+          continue;
+        }
+
+        // Get top matches
+        const topMatches = data.length > NUM_MATCHES 
+          ? orderedRandomSample(data, NUM_MATCHES)
+          : data;
+
+        // Generate notes for the matches
+        const note = await getNote(resume.summary, topMatches[0]?.summary || '', topMatches[1]?.summary || '', topMatches[2]?.summary || '');
+
+        // Create match records
+        let i = 0;
+        for (const match of topMatches) {
+          processedMatches.push({
+            user_id: resume.profile.id,
+            match: {
+              id: match.profile.id,
+              reason: note[`note${i + 1}`],
+              summary: match.summary,
+              similarity: match.similarity,
+            },
+          });
+          i++;
+        }
+      } catch (error) {
+        // Mark this resume as not matched
+        await supabaseClient
+          .from('resume_embeddings')
+          .update({ isMatched: false })
+          .eq('id', resume.id);
+
+        console.error(`Error processing resume ${resume.id}:`, error);
+        errors.push({ resumeId: resume.id, error: (error as Error).message });
+      }
+    }
+
+    // Insert all matches into the database
+    if (processedMatches.length > 0) {
+      const { error: matchesError } = await supabaseClient
+        .from('suggested_matches')
+        .insert(processedMatches);
+
+      if (matchesError) {
+        // Mark all resumes as not matched
+        await supabaseClient
+          .from('resume_embeddings')
+          .update({ isMatched: false })
+          .in('id', allPublicResumes.map((resume: any) => resume.id));
+
+        return new Response(JSON.stringify({ 
+          error: 'Failed to insert matches',
+          details: matchesError 
+        }), { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      processed: processedMatches.length,
+      errors: errors.length > 0 ? errors : undefined
+    }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error processing resumes:', error);
+    return new Response(JSON.stringify({ error: 'Failed to process resumes' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+})
+
+/* To invoke locally:
+
+  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
+  2. Make an HTTP request:
+
+  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/create-matches' \
+    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
+    --header 'Content-Type: application/json' \
+    --data '{}'
+
+*/

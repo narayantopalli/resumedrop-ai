@@ -1,60 +1,52 @@
-# ResumeDrop AI
+# ResumeDrop AI 🚀
 
-© 2025 resumedrop.ai. All rights reserved.
+> **AI-Powered Networking And Resume Management Platform**
 
-A networking platform that allows users to upload their resumes and discover other users with similar skills, experience, and interests using AI-powered matching.
+ResumeDrop AI is a networking platform that revolutionizes professional connections by using AI to match users based on their skills, experience, and interests extracted from their resumes.
 
-**Created by:** Narayan Topalli (Cornell '28)
+![ResumeDrop AI](https://img.shields.io/badge/Status-Active-brightgreen)
+![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black)
+![React](https://img.shields.io/badge/React-19.0.0-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Supabase](https://img.shields.io/badge/Supabase-2.50.0-green)
+
+## ✨ Features
+
+### 🤖 AI-Powered Matching
+- **Smart Resume Analysis**: Automatically extracts and analyzes skills, experience, and interests from uploaded resumes
+- **Intelligent Matching**: Uses OpenAI GPT-4 to find users with complementary skills and similar professional interests
+- **Personalized Recommendations**: AI-generated connection suggestions with specific reasons why users should connect
+- **Template Generation**: AI-generated templates to make your resume look more professional than ever
+
+### 📄 Resume Management
+- **Multi-Format Support**: Upload resumes in PDF, DOCX, or paste text directly
+- **Real-time Preview**: Instant preview of uploaded resumes
+- **Text Extraction**: Advanced text parsing for comprehensive content analysis
+- **Resume Templates**: Professional templates for creating polished resumes
+
+### 👥 Professional Networking
+- **Profile Discovery**: Browse and discover other professionals in your field
+- **Privacy Controls**: Toggle between public and private profiles
+- **Real-time Updates**: Live notifications for new matches and connections
+- **Contact Information**: Share and access professional contact details
+
+### 🔒 Security & Privacy
+- **Secure Authentication**: Supabase Auth with email/password and social login
+- **Data Protection**: Encrypted storage and secure file handling
+- **Privacy Settings**: Full control over profile visibility and data sharing
+- **GDPR Compliant**: User data protection and deletion capabilities
+
+## 👨‍💻 Author
+
+**Narayan Topalli** - Cornell University '28
+
+- GitHub: [@narayantopalli](https://github.com/narayantopalli)
+- LinkedIn: [Narayan Topalli](https://linkedin.com/in/narayan-topalli)
+- Email: narayan.topalli@gmail.com
 
 ---
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-### Environment Setup
-
-1. Create a `.env.local` file in the root directory with your Supabase credentials:
-
-```bash
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-You can find these values in your Supabase project dashboard under Settings > API.
-
-### Development
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<div align="center">
+  <p>Made with ❤️ by the ResumeDrop AI Team</p>
+  <p>© 2025 resumedrop.ai. All rights reserved.</p>
+</div>

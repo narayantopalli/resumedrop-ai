@@ -12,7 +12,7 @@ export default function AuthLayout({
             resumedrop.ai
           </h1>
           <p className="text-xl mb-8 text-neutral-700">
-            Find peers who have similar interests!
+            The ultimate tool for college networking!
           </p>
           <div className="space-y-4">
             <div className="flex items-center justify-center space-x-3">
@@ -25,7 +25,7 @@ export default function AuthLayout({
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-neutral-800 rounded-full"></div>
-              <span className="text-neutral-700">All you need to do is upload your resume</span>
+              <span className="text-neutral-700">Download your networking-ready formatted resume for free</span>
             </div>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default function AuthLayout({
               resumedrop.ai
             </h1>
             <p className="text-neutral-600">
-              Find the people who think like you!
+              The ultimate tool for college networking!
             </p>
           </div>
           

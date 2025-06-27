@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { FiFileText, FiUpload, FiEye, FiCalendar, FiEdit3, FiSave, FiX, FiCopy, FiCheck, FiRotateCcw, FiRotateCw, FiDownload, FiCpu } from "react-icons/fi";
+import { FiFileText, FiUpload, FiEye, FiCalendar, FiEdit3, FiSave, FiX, FiCopy, FiCheck, FiRotateCcw, FiRotateCw, FiDownload, FiCpu, FiDatabase, FiGlobe } from "react-icons/fi";
 import Link from "next/link";
 import { useSession } from '@/contexts/SessionContext';
 import { updateResumeExtractedText } from '@/actions/resume';
@@ -17,7 +17,7 @@ export default function ResumePreview({
   resumeUpdatedAt,
   resumeExtractedText
 }: ResumePreviewProps) {
-  const { session, setResumeExtractedText, userMetadata } = useSession();
+  const { session, setResumeExtractedText, userMetadata, setUserMetadata } = useSession();
   const hasResume = resumeExtractedText != null;
   
   // Editable text states
@@ -40,6 +40,10 @@ export default function ResumePreview({
 
   // Animated ellipsis state
   const [ellipsisDots, setEllipsisDots] = useState('');
+
+  // Publish resume states
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   // load edit history from local storage
   useEffect(() => {
@@ -150,6 +154,11 @@ export default function ResumePreview({
   };
 
   const handleDownloadDOCX = async () => {
+    if (userMetadata?.saves_left <= 0 || !session?.user?.id) {
+      setDocxError('You have no saves left today.');
+      return;
+    }
+
     const textToDownload = isEditing ? editableText : resumeExtractedText;
     if (!textToDownload) {
       setDocxError('No text available to download');
@@ -165,9 +174,13 @@ export default function ResumePreview({
       const currentDate = new Date().toLocaleDateString().replace(/\//g, '-');
       const fileName = `${userName}_Resume_${currentDate}.docx`;
 
-      const result = await generateDOCXFromText(textToDownload, fileName);
+      const result = await generateDOCXFromText(textToDownload, fileName, session.user.id);
       
       if (result.success && result.url) {
+        setUserMetadata((prev: any) => ({
+          ...prev,
+          saves_left: prev.saves_left - 1
+        }));
         downloadDOCX(result.url, fileName);
       } else {
         setDocxError(result.error || 'Failed to generate DOCX');
@@ -280,6 +293,38 @@ export default function ResumePreview({
     return currentHistoryIndex !== null && editHistory && currentHistoryIndex < editHistory.length - 1;
   }, [currentHistoryIndex, editHistory]);
 
+  const handlePublishResume = async () => {
+    if (!session?.user?.id) {
+      setPublishError('Please sign in to update your resume.');
+      return;
+    }
+
+    if (!resumeExtractedText) {
+      setPublishError('No resume content to update');
+      return;
+    }
+
+    setIsPublishing(true);
+    setPublishError(null);
+
+    try {
+      // wait 1 second
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // update resume extracted text and update public version
+      const updateResult = await updateResumeExtractedText(session.user.id, resumeExtractedText, true);
+      if (updateResult.success) {
+        setResumeExtractedText(resumeExtractedText);
+      } else {
+        setPublishError(updateResult.error || 'Failed to update resume. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error updating resume:', err);
+      setPublishError('Failed to update resume. Please try again.');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   if (!hasResume) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 h-full flex items-center justify-center">
@@ -308,17 +353,26 @@ export default function ResumePreview({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-full">
       {/* Header */}
-      <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="px-4 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-              <FiFileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-gray-900 dark:text-white">
-                Current Resume
-              </h2>
-            </div>
+            <button
+              onClick={handlePublishResume}
+              disabled={isPublishing || !hasResume}
+              className="group relative inline-flex items-center gap-3 w-44 py-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transform hover:scale-105 disabled:hover:scale-100"
+            >
+              <div className="ml-2 flex items-center justify-center w-10 h-10 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
+                <FiGlobe className={`w-5 h-5 ${isPublishing ? 'animate-spin' : ''}`} />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-white text-sm leading-tight">
+                  {isPublishing ? 'Updating...' : 'Update Resume'}
+                </div>
+                <div className="text-xs text-orange-100 opacity-90">
+                  Use for networking!
+                </div>
+              </div>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             {/* Undo/Redo buttons */}
@@ -400,6 +454,12 @@ export default function ResumePreview({
             </div>
           )}
 
+          {publishError && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-3">
+              <p className="text-red-700 dark:text-red-300 text-xs">{publishError}</p>
+            </div>
+          )}
+
           {isApplyingEdit && (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
               <div className="flex items-center gap-2">
@@ -425,7 +485,16 @@ export default function ResumePreview({
           </div>
 
           {/* Download DOCX Button at Bottom */}
-          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
+          <div className="mt-2 pt-1 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
+            {/* Saves left indicator */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                <FiDatabase className="w-3 h-3" />
+                <span className="font-medium">
+                  {userMetadata?.saves_left || 0} saves left today
+                </span>
+              </div>
+            </div>
             <button
               onClick={handleDownloadDOCX}
               disabled={isGeneratingDOCX}
@@ -442,7 +511,7 @@ export default function ResumePreview({
               )}
               {isGeneratingDOCX ? (
                 <span className="flex items-center">
-                  AI thinking
+                  AI analyzing
                   <span className="flex ml-1">
                     <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
                     <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>

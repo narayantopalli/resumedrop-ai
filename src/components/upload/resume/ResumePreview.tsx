@@ -39,8 +39,8 @@ export default function ResumePreview({ selectedResume, onRemove, fileName, upda
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-white dark:bg-neutral-800 rounded-xl p-8 shadow-sm border border-neutral-200 dark:border-neutral-700 hover:shadow-lg transition-all duration-300">
+    <div className="w-full">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 sm:p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 hover:shadow-lg transition-all duration-300">
         <div className="text-center mb-6">
           <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-2">
             Document Preview
@@ -53,7 +53,7 @@ export default function ResumePreview({ selectedResume, onRemove, fileName, upda
         {selectedResume ? (
           <div className="space-y-6">
             {/* File Preview Card */}
-            <div className="relative bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-800/30 rounded-xl p-6 border-2 border-dashed border-secondary-200 dark:border-secondary-700 hover:border-secondary-300 dark:hover:border-secondary-600 transition-colors duration-200">
+            <div className="mx-10 relative bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-800/30 rounded-xl p-6 border-2 border-dashed border-secondary-200 dark:border-secondary-700 hover:border-secondary-300 dark:hover:border-secondary-600 transition-colors duration-200">
               <div className="text-center space-y-3">
                 <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                   <FiFileText className="w-8 h-8 text-primary-600 dark:text-primary-400" />

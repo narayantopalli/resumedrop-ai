@@ -65,7 +65,7 @@ export default function TextPaste({ error, setError, onTextSubmitted }: TextPast
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 h-80">
+      <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 h-80 hover:shadow-lg transition-all duration-300">
         <div className="flex flex-col h-full">
           <div className="relative flex-1">
             <textarea

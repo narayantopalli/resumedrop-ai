@@ -1,6 +1,7 @@
 'use client';
 
 import { FiX, FiPhone, FiMail, FiInstagram, FiTwitter, FiLinkedin, FiUser, FiGithub } from "react-icons/fi";
+import Avatar from "../Avatar";
 
 interface ContactInfo {
   phone?: string;
@@ -16,6 +17,7 @@ interface ContactModalProps {
   onClose: () => void;
   profile: {
     name: string;
+    avatar_url: string;
     contactInfo?: ContactInfo;
   };
 }
@@ -38,7 +40,11 @@ export default function ContactModal({ isOpen, onClose, profile }: ContactModalP
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0"></div>
+            <Avatar
+              src={profile.avatar_url}
+              name={profile.name}
+              size="md"
+            />
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {profile.name}

@@ -2,7 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import mammoth from 'mammoth';
-import parse from 'pdf-parse/lib/pdf-parse';
+import parse from 'pdf-parse/lib/pdf-parse.js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -158,9 +158,14 @@ export async function getResumeBlob(url: string): Promise<{ success: boolean; bl
   }
 }
 
-export async function updateResumeExtractedText(userId: string, text: string): Promise<{ success: boolean; error?: string }> {
+export async function updateResumeExtractedText(userId: string, text: string, publicUpdate: boolean = false): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data, error } = await supabase.from('resume_text').upsert({ extraction: text, created_at: new Date().toISOString(), id: userId });
+    let error: any;
+    if (publicUpdate) {
+      ({ error } = await supabase.from('resume_text').upsert({ extraction: text, created_at: new Date().toISOString(), id: userId, public_extraction: text}));
+    } else { 
+      ({ error } = await supabase.from('resume_text').upsert({ extraction: text, created_at: new Date().toISOString(), id: userId}));
+    }
     if (error) {
       console.error('Error updating resume extracted text:', error);
       return {

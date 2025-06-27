@@ -117,7 +117,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/sign-in', req.url));
     }
 
-    // If accessing an auth route while authenticated, redirect to upload
+    // If accessing an auth route while authenticated, redirect to home
     if (isAuthRoute && session) {
       return NextResponse.redirect(new URL('/home', req.url));
     }

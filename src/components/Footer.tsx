@@ -12,7 +12,7 @@ export default function Footer() {
               resumedrop.ai
             </h3>
             <p className="text-neutral-600 dark:text-neutral-300 mb-4 max-w-md">
-              Find peers who are ambitious like you! Just upload your resume and we'll take care of the rest. 😊
+              Ready to upgrade your network? Just upload a copy of your resume and we'll take care of the rest. 😊
             </p>
             <div className="flex space-x-4">
               <a

@@ -84,21 +84,33 @@ const formatAIResponse = (text: string): string => {
 };
 
 export const getChatResponse = async (resumeText: string, pastMessages: string, message: string, userId: string): Promise<{rawResponse: string, formattedResponse: string, edits: {original: string, suggested: string}[]}> => {
+    let userMetadata: any;
     try {
-        const { data: userMetadata, error: userMetadataError } = await supabase.from('profiles').select('responses_left').eq('id', userId);
+        const { data: userData, error: userMetadataError } = await supabase.from('profiles').select('responses_left').eq('id', userId).single();
         if (userMetadataError) {
             console.error('Error getting user metadata:', userMetadataError);
             throw new Error('Failed to get user metadata');
         }
-        if (userMetadata[0].responses_left <= 0) {
+
+        if (userData.responses_left <= 0) {
             throw new Error('You have reached the maximum number of responses');
         }
+
+        userMetadata = userData;
 
         const message_length = message.length;
         if (message_length > MAX_PROMPT_CHARS) {
             console.log("Message is too long");
             throw new Error('Message is too long');
         }
+
+        // update responses left
+        const { error: updatedUserMetadataError } = await supabase.from('profiles').update({responses_left: userMetadata.responses_left - 1}).eq('id', userId);
+        if (updatedUserMetadataError) {
+            console.error('Error updating user metadata:', updatedUserMetadataError);
+            throw new Error('Failed to update user metadata');
+        }
+
         const PROMPT_CHARS_LEFT = MAX_PROMPT_CHARS - message_length;
         const message_history_length = pastMessages.length;
         const past_messages = message_history_length > PROMPT_CHARS_LEFT ? pastMessages.substring(message_history_length - PROMPT_CHARS_LEFT) : pastMessages;
@@ -110,7 +122,8 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             - Use of action verbs and quantifiable metrics
             - Use of specific examples and results
             - Use of specific tools, technologies, or frameworks
-            For every point you must give in text quote examples of how the user can improve.
+            For every analysis you must give in text quote examples of how the user can improve.
+            For as many of your suggestions as possible, give a list of edits that the user can make to improve their resume.
             
             Format your responses using markdown:
             - Use **bold** for emphasis and section headers
@@ -149,12 +162,6 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
         
         // Remove edits section from raw response
         const rawResponse = fullResponse.split('@@edits@@')[0].trim();
-
-        const { data: updatedUserMetadata, error: updatedUserMetadataError } = await supabase.from('profiles').update({responses_left: userMetadata[0].responses_left - 1}).eq('id', userId);
-        if (updatedUserMetadataError) {
-            console.error('Error updating user metadata:', updatedUserMetadataError);
-            throw new Error('Failed to update user metadata');
-        }
         
         return {
             rawResponse: rawResponse,
@@ -163,6 +170,8 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
         };
     } catch (error) {
         console.error('Error calling OpenAI API:', error);
+        // update responses left
+        await supabase.from('profiles').update({responses_left: userMetadata.responses_left + 1}).eq('id', userId);
         throw new Error('Failed to get response from AI');
     }
 }
@@ -193,7 +202,7 @@ export const response = async (instructions: string, context: string, past_promp
           content: prompt,
         },
       ],
-      max_tokens: 500,
+      max_tokens: 1000,
       temperature: 0.7,
     });
 
