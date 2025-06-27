@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "resumedrop.ai - Find People Who Think Like You",
-  description: "Upload your resume and discover people who share your skills and experience.",
+  title: "resumedrop.ai - The ultimate tool for college networking!",
+  description: "Ready to upgrade your network? Just upload a copy of your resume and we'll take care of the rest. 😊",
   keywords: ["resume", "resume drop", "ai", "networking", "linkedin", "job search", "job matching", "job finding", "job application", "job application matching", "job application finding", "job application networking", "college", "college networking", "college job search", "college job matching", "college job finding", "college job application", "college job application matching", "college job application finding", "college job application networking"],
   authors: [{ name: "Narayan V. Topalli" }],
 };
@@ -33,6 +33,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-neutral-50 dark:bg-neutral-900`}
       >
