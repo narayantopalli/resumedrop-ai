@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       
       if (error) {
         console.error('Error exchanging code for session:', error);
-        return NextResponse.redirect(new URL('/auth/sign-in?error=oauth_error', requestUrl.origin));
+        return NextResponse.redirect(new URL('/sign-in?error=oauth_error', requestUrl.origin));
       }
 
       if (data.user) {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           const userEmail = data.user.email;
           if (!userEmail) {
             console.error('No email found in OAuth user data');
-            return NextResponse.redirect(new URL('/auth/sign-in?error=no_email', requestUrl.origin));
+            return NextResponse.redirect(new URL('/sign-in?error=no_email', requestUrl.origin));
           }
 
           const college = await getCollege(userEmail);
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             console.error(`OAuth user with unsupported email domain: ${userEmail}`);
             // Sign out the user since they can't use the service
             await supabaseServer.auth.signOut();
-            return NextResponse.redirect(new URL('/auth/sign-in?error=unsupported_email', requestUrl.origin));
+            return NextResponse.redirect(new URL('/sign-in?error=unsupported_email', requestUrl.origin));
           }
 
           console.log(`OAuth user validated: ${userEmail} -> ${college.name}`);
@@ -110,10 +110,10 @@ export async function GET(request: NextRequest) {
       }
     } catch (error) {
       console.error('Error in OAuth callback:', error);
-      return NextResponse.redirect(new URL('/auth/sign-in?error=oauth_error', requestUrl.origin));
+      return NextResponse.redirect(new URL('/sign-in?error=oauth_error', requestUrl.origin));
     }
   }
 
   // Fallback redirect to sign-in page if no code or user
-  return NextResponse.redirect(new URL('/auth/sign-in', requestUrl.origin));
+  return NextResponse.redirect(new URL('/sign-in', requestUrl.origin));
 }
