@@ -12,6 +12,11 @@ const supabase = createClient(
 
 const supportedColleges = await supabase.from('colleges').select('*').then(res => res.data)
 
+export async function getCollege(email: string) {
+  const emailDomain = email.split('@')[1];
+  return supportedColleges?.find(college => college.domain === emailDomain);
+}
+
 export async function validateSignup(formData: {
   name: string;
   email: string;
@@ -39,8 +44,7 @@ export async function validateSignup(formData: {
 
   // Validate college and get college info
   if (email && supportedColleges) {
-    const emailDomain = email.split('@')[1];
-    college = supportedColleges.find(college => college.domain === emailDomain);
+    college = await getCollege(email);
     if (!college) {
       errors.push("Email must be from a supported college");
     }

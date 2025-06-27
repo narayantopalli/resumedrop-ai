@@ -211,4 +211,60 @@ export async function updateUserProfile(userId: string, profileData: {
       error: 'Internal server error'
     };
   }
+}
+
+export async function createOAuthUserProfile(userId: string, userData: {
+  name?: string;
+  email?: string;
+  college?: string;
+}) {
+  try {
+    const { name, email, college } = userData;
+
+    // Validate required fields
+    if (!userId) {
+      return {
+        success: false,
+        error: 'Missing user ID'
+      };
+    }
+
+    // Insert user profile using service role key (bypasses RLS)
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        name: name || "User",
+        email: email || "",
+        college: college || "",
+        isPublic: true,
+        avatar_url: null,
+        contactInfo: {
+          phone: "",
+          github: "",
+          instagram: "",
+          twitter: "",
+          linkedin: "",
+          email: email || ""
+        }
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating OAuth user profile:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in createOAuthUserProfile:', error);
+    return {
+      success: false,
+      error: 'Internal server error'
+    };
+  }
 } 

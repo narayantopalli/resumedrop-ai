@@ -40,7 +40,9 @@ export async function middleware(req: NextRequest) {
     const refreshToken = searchParams.get('refresh_token');
     const type = searchParams.get('type');
 
-    if (code) {
+    // Only handle non-OAuth codes (like password reset) in middleware
+    // OAuth codes should be handled by the callback route
+    if (code && type === 'recovery') {
       // Exchange code for session
       await supabase.auth.exchangeCodeForSession(code);
     } else if (accessToken && refreshToken && type === 'recovery') {

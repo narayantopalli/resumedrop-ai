@@ -31,7 +31,7 @@ ResumeDrop AI is a networking platform that revolutionizes professional connecti
 - **Contact Information**: Share and access professional contact details
 
 ### 🔒 Security & Privacy
-- **Secure Authentication**: Supabase Auth with email/password and social login
+- **Secure Authentication**: Supabase Auth with email/password and Google OAuth
 - **Data Protection**: Encrypted storage and secure file handling
 - **Privacy Settings**: Full control over profile visibility and data sharing
 - **GDPR Compliant**: User data protection and deletion capabilities

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FiEye, FiEyeOff, FiMail, FiLock } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/lib/supabase";
 
 export default function SignInPage() {
@@ -11,8 +12,30 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Handle error messages from URL parameters (OAuth callback errors)
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      switch (errorParam) {
+        case 'unsupported_email':
+          setError("Your email domain is not supported. Please use an email from a supported college or university.");
+          break;
+        case 'no_email':
+          setError("No email address found. Please try signing in again.");
+          break;
+        case 'oauth_error':
+          setError("An error occurred during sign-in. Please try again.");
+          break;
+        default:
+          setError("An unexpected error occurred. Please try again.");
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +81,46 @@ export default function SignInPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setError("");
+    
+    // Clear localStorage when Google sign-in button is pressed
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('editHistory');
+        localStorage.removeItem('currentHistoryIndex');
+        // Clear any other localStorage items that might exist
+        localStorage.clear();
+      } catch (error) {
+        console.warn('Failed to clear localStorage on Google sign in:', error);
+      }
+    }
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+      }
+      // The redirect will happen automatically, so we don't need to handle navigation here
+    } catch (err) {
+      setError("An unexpected error occurred during Google sign-in. Please try again.");
+      console.error(err);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
       <div className="text-center mb-8">
@@ -74,6 +137,40 @@ export default function SignInPage() {
           <p className="text-sm text-error-600">{error}</p>
         </div>
       )}
+
+      {/* Google Sign-In Button */}
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleLoading}
+        className="w-full flex justify-center items-center py-3.5 px-4 border border-neutral-300 rounded-lg text-sm font-semibold text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm mb-2"
+      >
+        {isGoogleLoading ? (
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-neutral-600 mr-2"></div>
+            Signing in with Google...
+          </div>
+        ) : (
+          <>
+            <FcGoogle className="w-5 h-5 mr-3" />
+            Continue with Google
+          </>
+        )}
+      </button>
+      
+      <p className="text-xs text-neutral-500 mb-6 text-center">
+        Must use a supported college/university email address
+      </p>
+
+      {/* Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-neutral-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-neutral-500">Or continue with email</span>
+        </div>
+      </div>
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
