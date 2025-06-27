@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ProfilesSection from '@/components/home/ProfilesSection';
 import ResumeReviewAI from '@/components/home/ResumeReviewAI';
@@ -16,7 +16,8 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 
 type TabView = 'resume-review' | 'profiles';
 
-export default function HomePage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function HomePageContent() {
   const { userMetadata, resumeInfo, resumeExtractedText, setUserMetadata } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -342,5 +343,44 @@ export default function HomePage() {
         declineButtonVariant="success"
       />
     </div>
+  );
+}
+
+// Loading fallback component
+function HomePageLoading() {
+  return (
+    <div className="flex flex-col">
+      <div className="mb-2">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="-mb-px flex space-x-8 justify-between items-center" aria-label="Tabs">
+            <div className="flex space-x-8">
+              <div className="py-2 px-1 border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 font-medium text-sm">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="hidden sm:inline">Resume Review AI</span>
+                  <span className="sm:hidden">Resume AI</span>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
+      <div className="flex-1">
+        <div className="animate-pulse">
+          <div className="h-[600px] bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function HomePage() {
+  return (
+    <Suspense fallback={<HomePageLoading />}>
+      <HomePageContent />
+    </Suspense>
   );
 } 
