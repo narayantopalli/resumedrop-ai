@@ -151,15 +151,15 @@ export async function generateDocx(text: string, fileName: string = 'resume.docx
     // update saves left
     await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
 
-    const TEMPLATE_PATH = path.resolve(process.cwd(), 'public', 'resume-template.docx');
+    const TEMPLATE_PATH = path.resolve('./public', 'resume-template.docx');
     
     if (!fs.existsSync(TEMPLATE_PATH)) {
       // update saves left
       await supabase.from('profiles').update({ saves_left: userMetadata.saves_left + 1 }).eq('id', userId);
-      return { success: false, error: 'Template file not found at ' + TEMPLATE_PATH };
+      return { success: false, error: 'Template file not found' };
     }
 
-    const templateContent = fs.readFileSync(TEMPLATE_PATH);
+    const templateContent = await fs.promises.readFile(TEMPLATE_PATH);
     const zip = new PizZip(templateContent);
 
     // Create docxtemplater instance
