@@ -26,7 +26,7 @@ export default function ProfileCard({
       )}
       <div className="absolute top-2 right-2">
         <span className="text-xs font-bold text-white bg-blue-500 dark:bg-blue-600 px-2 py-1 rounded-full">
-          {(Number(profile.similarity) * 100).toFixed(0)}% Similar
+          {((Number(profile.similarity)+1) * 50).toFixed(0)}% Similar
         </span>
       </div>
       

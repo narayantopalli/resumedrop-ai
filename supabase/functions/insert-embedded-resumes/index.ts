@@ -6,7 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.46.1";
 
-const MAX_CONCURRENT_OPENAI_REQUESTS = 3; // Limit concurrent OpenAI requests
+const MAX_CONCURRENT_OPENAI_REQUESTS = 30; // Limit concurrent OpenAI requests
 const OPENAI_REQUEST_DELAY = 1000; // 1 second delay between OpenAI requests
 
 // Simple semaphore implementation for rate limiting
@@ -54,7 +54,7 @@ const getSummary = async (text: string) => {
           "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "gpt-4.1-mini",
           messages: [
             {
               role: "system",

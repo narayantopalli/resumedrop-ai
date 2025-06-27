@@ -11,6 +11,5 @@ export interface Profile {
     instagram?: string;
     github?: string;
     }
-  summary: string;
   similarity: number;
 } 

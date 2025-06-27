@@ -7,7 +7,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.46.1";
 
 const NUM_MATCHES = 3;
-const MAX_CONCURRENT_OPENAI_REQUESTS = 3; // Limit concurrent OpenAI requests
+const MAX_CONCURRENT_OPENAI_REQUESTS = 30; // Limit concurrent OpenAI requests
 const OPENAI_REQUEST_DELAY = 1000; // 1 second delay between OpenAI requests
 
 // Simple semaphore implementation for rate limiting
@@ -43,7 +43,7 @@ class Semaphore {
 // Create a semaphore for OpenAI requests
 const openaiSemaphore = new Semaphore(MAX_CONCURRENT_OPENAI_REQUESTS);
 
-const getNote = async (userProfile: string, profile1: string, profile2: string, profile3: string) => {
+const getNote = async (userProfile: string, name1: string, profile1: string, name2: string, profile2: string, name3: string, profile3: string) => {
     // Acquire semaphore before making OpenAI request
     await openaiSemaphore.acquire();
     
@@ -55,7 +55,7 @@ const getNote = async (userProfile: string, profile1: string, profile2: string, 
           "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "gpt-4.1-mini",
           messages: [
             {
               role: "system",
@@ -65,8 +65,10 @@ const getNote = async (userProfile: string, profile1: string, profile2: string, 
               You are to write a short and sweet note about why the user should connect with each of the other users.
               The note should be written in second person telling the user why they should connect with the other person.
               Include specific relevant experiences and interests of the other person.
-              The note should include a suggestion about something they could do together or connect on.
+              The note should include a suggestion about something they could discuss or connect on.
               Please be concise and to the point.
+              Be as specific as possible.
+              Do not use gendered language, but you can use the name of the person.
               Respond in JSON format with the following structure:
               {
                 "note1": "Note about why the user should connect with person 1",
@@ -87,9 +89,9 @@ const getNote = async (userProfile: string, profile1: string, profile2: string, 
             {
               role: "user",
               content: `
-              Person 1: ${profile1}
-              Person 2: ${profile2}
-              Person 3: ${profile3}
+              Person 1 (name: ${name1}): ${profile1}
+              Person 2 (name: ${name2}): ${profile2}
+              Person 3 (name: ${name3}): ${profile3}
               `
             }
           ],
@@ -130,7 +132,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: allPublicResumes, error: allPublicResumesError }
      = await supabaseClient.from('resume_embeddings')
-    .select('id, embedding, summary, profile:profiles!resume_embeddings_id_fkey(id)')
+    .select('id, embedding, summary, profile:profiles!resume_embeddings_id_fkey(id, college)')
     .eq('profile.isPublic', true)
     .eq('isUpdated', true)
     .eq('isMatched', false);
@@ -173,7 +175,8 @@ Deno.serve(async (req: Request) => {
         const { data, error } = await supabaseClient.rpc("similar_profiles", {
           query_embedding: resume.embedding,
           user_id: resume.profile.id,
-          neighbors: 50,
+          search_college: resume.profile.college,
+          neighbors: 50
         });
 
         if (error) {
@@ -192,7 +195,7 @@ Deno.serve(async (req: Request) => {
           : data;
 
         // Generate notes for the matches
-        const note = await getNote(resume.summary, topMatches[0]?.summary || '', topMatches[1]?.summary || '', topMatches[2]?.summary || '');
+        const note = await getNote(resume.summary, topMatches[0]?.profile.name || '', topMatches[0]?.summary || '', topMatches[1]?.profile.name || '', topMatches[1]?.summary || '', topMatches[2]?.profile.name || '', topMatches[2]?.summary || '');
 
         // Create match records
         let i = 0;
@@ -202,7 +205,6 @@ Deno.serve(async (req: Request) => {
             match: {
               id: match.profile.id,
               reason: note[`note${i + 1}`],
-              summary: match.summary,
               similarity: match.similarity,
             },
           });
