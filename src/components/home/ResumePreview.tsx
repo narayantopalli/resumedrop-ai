@@ -222,7 +222,7 @@ export default function ResumePreview({
       const currentDate = new Date().toLocaleDateString().replace(/\//g, '-');
       const fileName = `${userName}_Resume_${currentDate}.docx`;
 
-      const result = await generateDOCXFromText(textToDownload, fileName, session.user.id);
+      const result = await generateDOCXFromText(textToDownload, session.user.id);
       
       if (result.success && result.url) {
         setUserMetadata((prev: any) => ({

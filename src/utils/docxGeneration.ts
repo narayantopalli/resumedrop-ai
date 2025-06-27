@@ -8,7 +8,6 @@ export interface GenerateDOCXResult {
 
 export const generateDOCXFromText = async (
   text: string,
-  fileName: string = 'resume.docx',
   userId: string
 ): Promise<GenerateDOCXResult> => {
   if (!text) {
@@ -19,7 +18,7 @@ export const generateDOCXFromText = async (
   }
 
   try {
-    const result = await generateDocx(text, fileName, userId);
+    const result = await generateDocx(text, userId);
 
     if (!result.success) {
       throw new Error(result.error || 'Failed to generate DOCX');

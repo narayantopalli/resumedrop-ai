@@ -171,7 +171,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
     } catch (error) {
         console.error('Error calling OpenAI API:', error);
         // update responses left
-        await supabase.from('profiles').update({responses_left: userMetadata.responses_left + 1}).eq('id', userId);
+        await supabase.from('profiles').update({responses_left: userMetadata.responses_left}).eq('id', userId);
         throw new Error('Failed to get response from AI');
     }
 }

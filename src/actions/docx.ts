@@ -128,7 +128,7 @@ async function parseResumeText(resumeText: string): Promise<any> {
     }
 }
 
-export async function generateDocx(text: string, fileName: string = 'resume.docx', userId: string): Promise<{ success: boolean; data?: string; error?: string }> {
+export async function generateDocx(text: string, userId: string): Promise<{ success: boolean; data?: string; error?: string }> {
   let userMetadata: any;
   try {
     if (!text) {
@@ -148,19 +148,13 @@ export async function generateDocx(text: string, fileName: string = 'resume.docx
       return { success: false, error: 'You have no saves left.' };
     }
 
-    // update saves left
-    await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
-
-    const TEMPLATE_PATH = path.resolve('./public', 'resume-template.docx');
-    
-    if (!fs.existsSync(TEMPLATE_PATH)) {
-      // update saves left
-      await supabase.from('profiles').update({ saves_left: userMetadata.saves_left + 1 }).eq('id', userId);
+    let zip: PizZip;
+    try {
+      const templateContent = fs.readFileSync(path.resolve('public/assets/resume-template.docx'));
+      zip = new PizZip(templateContent);
+    } catch (error) {
       return { success: false, error: 'Template file not found' };
     }
-
-    const templateContent = await fs.promises.readFile(TEMPLATE_PATH);
-    const zip = new PizZip(templateContent);
 
     // Create docxtemplater instance
     const doc = new Docxtemplater(zip, {
@@ -169,6 +163,9 @@ export async function generateDocx(text: string, fileName: string = 'resume.docx
     });
 
     const resumeData = await parseResumeText(text);
+
+    // update saves left
+    await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
 
     // Set the template variables
     doc.setData({
@@ -205,7 +202,7 @@ export async function generateDocx(text: string, fileName: string = 'resume.docx
   } catch (error) {
     console.error('DOCX generation error:', error);
     // update saves left
-    await supabase.from('profiles').update({ saves_left: userMetadata.saves_left + 1 }).eq('id', userId);
+    await supabase.from('profiles').update({ saves_left: userMetadata.saves_left }).eq('id', userId);
     // Provide more specific error messages
     if (error instanceof SyntaxError && error.message.includes('JSON')) {
       return { success: false, error: 'Failed to parse resume data. The AI model returned invalid JSON. Please try again.' };
