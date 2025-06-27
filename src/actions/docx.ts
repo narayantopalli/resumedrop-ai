@@ -157,7 +157,7 @@ export async function generateDocx(text: string, fileName: string = 'resume.docx
     if (!fs.existsSync(templatePath)) {
       // update saves left
       await supabase.from('profiles').update({ saves_left: userMetadata.saves_left + 1 }).eq('id', userId);
-      return { success: false, error: 'Template file not found at ' + templatePath };
+      return { success: false, error: 'Template file not found' };
     }
 
     const templateContent = fs.readFileSync(templatePath);
