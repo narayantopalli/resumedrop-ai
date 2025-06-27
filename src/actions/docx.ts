@@ -18,11 +18,11 @@ const openai = new OpenAI({
 
 async function parseResumeText(resumeText: string): Promise<any> {
     const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
             { role: "system", content: `
                 You are a helpful assistant that parses resume text and returns a JSON object:
-                Output a JSON object with the following structure:
+                Output a JSON object with the exact following structure:
                 {
                     "full_name": // their full name,
                     "email": // their email,
@@ -32,17 +32,17 @@ async function parseResumeText(resumeText: string): Promise<any> {
                     "university_college": // their university and the college within,
                     "university_location": // their university location, state and city,
                     "degree": // their degree, ie. Bachelor of Science in Computer Science,
-                    "graduation": // their graduation month and year, ie. May 2025,
+                    "expected_graduation": // their expected graduation month and year, ie. May 2025,
                     "gpa": // their gpa if listed otherwise None,
                     "relevant_courses": // relevant courses they have taken as a comma separated list,
-                    "skills": [{"skill": // the skill ie. software development, "frameworks": "a comma separated list of frameworks they have used for this skill"}, ...],
+                    "skills": [{"skill": // the skill ie. software development, "frameworks": "a comma separated list of frameworks they have used for this skill"}, ...] // ensure that every skill has at least one framework!,
                     "experiences": [
                         {
                             "experience": // the experience ie. Software Engineer,
                             "dates": // the dates of the experience ie. May 2024 - June 2025,
                             "company_or_program": // the company or program they worked for,
                             "location": // the location of the experience, ie. either state and city or remote,
-                            "contributions": [{"contribution": // the contribution they made to the company or program}, ...]
+                            "contributions": [{"contribution": // the contribution they made to the company or program}, ...] // this needs to be a list of dictionaries
                         }
                     ],
                     "activities": [
@@ -51,11 +51,12 @@ async function parseResumeText(resumeText: string): Promise<any> {
                             "role": // the role they had in the activity, ie. Team Lead,
                             "dates": // the dates of the activity ie. May 2024 - June 2025,
                             "location": // the location of the activity, ie. either state and city or remote,
-                            "contributions": [{"contribution": // the contribution they made to the activity}, ...]
+                            "contributions": [{"contribution": // the contribution they made to the activity}, ...] // this needs to be a list of dictionaries
                         }
                     ],
                     "languages": // a comma separated list of languages they are proficient in,
                     "interests": // a comma separated list of interests they have,
+                    "achievements": // a comma separated list of awards they have won, ie. Dean's List, etc.
                 }
                 The output should be a valid JSON object.
                 Do not include any other text in your response.
@@ -113,14 +114,15 @@ async function parseResumeText(resumeText: string): Promise<any> {
                 university_college: '',
                 university_location: '',
                 degree: '',
-                graduation: '',
+                expected_graduation: '',
                 gpa: '',
                 relevant_courses: '',
                 skills: [],
                 experiences: [],
                 activities: [],
                 languages: '',
-                interests: ''
+                interests: '',
+                achievements: ''
             };
         }
     }
@@ -179,14 +181,15 @@ export async function generateDocx(text: string, fileName: string = 'resume.docx
       university_college: resumeData.university_college || '**Add university and college here**',
       university_location: resumeData.university_location || '**Add university location here**',
       degree: resumeData.degree || '**Add degree here**',
-      graduation: resumeData.graduation || '**Add graduation month and year here**',
+      graduation: resumeData.expected_graduation || '**Add graduation month and year here**',
       gpa: resumeData.gpa || '**Add GPA here**',
       relevant_courses: resumeData.relevant_courses || '**Add relevant courses here**',
       skills: resumeData.skills || '**Add skills here**',
       experiences: resumeData.experiences || '**Add experiences here**',
       activities: resumeData.activities || '**Add activities here**',
       languages: resumeData.languages || '**Add languages here**',
-      interests: resumeData.interests || '**Add interests here**'
+      interests: resumeData.interests || '**Add interests here**',
+      achievements: resumeData.achievements || '**Add achievements here**'
     });
 
     // Render the document

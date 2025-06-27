@@ -35,8 +35,8 @@ const templatePrompts = [
     prompt: 'Help me optimize my resume with relevant keywords for my target industry and job roles.'
   },
   {
-    id: 'suggestions',
-    title: 'Give me suggestions for each section',
+    id: 'edits',
+    title: 'Give me a list of edits',
     prompt: 'Give me a list of edits that I can make to improve each section of my resume.'
   },
   {
