@@ -66,8 +66,6 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(new URL('/sign-in?error=unsupported_email', requestUrl.origin));
           }
 
-          console.log(`OAuth user validated: ${userEmail} -> ${college.name}`);
-
           // Check if user profile exists
           const { data: existingProfile, error: profileError } = await supabase
             .from('profiles')
@@ -75,10 +73,9 @@ export async function GET(request: NextRequest) {
             .eq('id', data.user.id)
             .single();
 
-          // If profile doesn't exist, create one for OAuth user
-          if (profileError || !existingProfile) {
+          // If profile doesn't have complete info, fix it
+          if (profileError || existingProfile?.college === null) {
             const profileResult = await createOAuthUserProfile(data.user.id, {
-              name: data.user.user_metadata?.full_name || data.user.user_metadata?.name,
               email: userEmail,
               college: college.name
             });

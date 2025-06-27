@@ -214,12 +214,11 @@ export async function updateUserProfile(userId: string, profileData: {
 }
 
 export async function createOAuthUserProfile(userId: string, userData: {
-  name?: string;
   email?: string;
   college?: string;
 }) {
   try {
-    const { name, email, college } = userData;
+    const { email, college } = userData;
 
     // Validate required fields
     if (!userId) {
@@ -232,10 +231,7 @@ export async function createOAuthUserProfile(userId: string, userData: {
     // Insert user profile using service role key (bypasses RLS)
     const { data, error } = await supabase
       .from('profiles')
-      .upsert({
-        id: userId,
-        name: name || "User",
-        email: email || "",
+      .update({
         college: college || "",
         isPublic: true,
         avatar_url: null,
@@ -248,8 +244,7 @@ export async function createOAuthUserProfile(userId: string, userData: {
           email: email || ""
         }
       })
-      .select()
-      .single();
+      .eq('id', userId);
 
     if (error) {
       console.error('Error creating OAuth user profile:', error);

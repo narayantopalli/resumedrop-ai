@@ -101,12 +101,14 @@ export function SessionProvider({ children }: SessionProviderProps) {
       
       if (error) {
         console.error('Error fetching user metadata:', error);
+        signOut();
         setUserMetadata(null);
       } else {
         setUserMetadata(user);
       }
     } catch (error) {
       console.error('Error fetching user metadata:', error);
+      signOut();
       setUserMetadata(null);
     }
   }
