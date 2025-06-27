@@ -2,8 +2,6 @@
 
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
-import fs from 'fs';
-import path from 'path';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
@@ -148,13 +146,12 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
       return { success: false, error: 'You have no saves left.' };
     }
 
-    let zip: PizZip;
-    try {
-      const templateContent = fs.readFileSync(path.resolve('./public', 'resume-template.docx'));
-      zip = new PizZip(templateContent);
-    } catch (error) {
+    const { data: templateContent, error: templateContentError } = await supabase.storage.from('templates').download('resume-template.docx');
+    if (templateContentError) {
       return { success: false, error: 'Template file not found' };
     }
+    const arrayBuffer = await templateContent.arrayBuffer();
+    const zip = new PizZip(arrayBuffer);
 
     // Create docxtemplater instance
     const doc = new Docxtemplater(zip, {
