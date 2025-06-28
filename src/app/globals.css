@@ -136,6 +136,73 @@ body {
   }
 }
 
+/* Wide screen optimizations */
+@media (min-width: 1280px) {
+  /* xl breakpoint and above */
+  .container-wide {
+    max-width: 1440px;
+  }
+}
+
+@media (min-width: 1536px) {
+  /* 2xl breakpoint and above */
+  .container-wide {
+    max-width: 1920px;
+  }
+}
+
+/* Ultra-wide screen support */
+@media (min-width: 1920px) {
+  .container-ultra-wide {
+    max-width: 2560px;
+  }
+}
+
+/* Improved responsive typography for wide screens */
+@media (min-width: 1280px) {
+  .text-responsive {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+}
+
+@media (min-width: 1536px) {
+  .text-responsive {
+    font-size: 1.25rem;
+    line-height: 1.8;
+  }
+}
+
+/* Better spacing for wide screens */
+@media (min-width: 1280px) {
+  .spacing-wide {
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .spacing-wide {
+    padding: 2.5rem;
+    gap: 2rem;
+  }
+}
+
+/* Optimized grid layouts for wide screens */
+@media (min-width: 1280px) {
+  .grid-wide {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .grid-wide {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+}
+
 /* Hide scrollbar utility class */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */

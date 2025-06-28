@@ -20,9 +20,9 @@ export default function UploadPage() {
     if (loadingSession) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="bg-white dark:bg-neutral-800 rounded-lg p-8 flex items-center gap-4 shadow-lg">
-                    <FiLoader className="w-6 h-6 animate-spin text-primary-600" />
-                    <p className="text-primary-900 dark:text-white">Loading...</p>
+                <div className="bg-white dark:bg-neutral-800 rounded-lg p-8 xl:p-12 flex items-center gap-4 shadow-lg">
+                    <FiLoader className="w-6 h-6 xl:w-8 xl:h-8 animate-spin text-primary-600" />
+                    <p className="text-primary-900 dark:text-white xl:text-lg">Loading...</p>
                 </div>
             </div>
         );
@@ -36,7 +36,7 @@ export default function UploadPage() {
     return (
         <>
             {/* Tab Content */}
-            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-6">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 p-6 xl:p-8 2xl:p-10 max-w-4xl xl:max-w-6xl 2xl:max-w-7xl mx-auto">
                 <ResumePage />
             </div>
         </>

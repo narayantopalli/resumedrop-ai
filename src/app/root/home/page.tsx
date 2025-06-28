@@ -318,9 +318,9 @@ function HomePageContent() {
             </div>
 
             {/* Desktop Layout with Resizable Divider */}
-            <div className="hidden lg:flex items-start gap-4" ref={containerRef}>
+            <div className="hidden lg:flex items-start gap-4 xl:gap-6 2xl:gap-8" ref={containerRef}>
               <div 
-                className="h-[600px]"
+                className="h-[600px] xl:h-[700px] 2xl:h-[800px]"
                 style={{ width: `${dividerPosition}%` }}
               >
                 <ResumePreview
@@ -330,14 +330,14 @@ function HomePageContent() {
               </div>
               
               <div
-                className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 cursor-col-resize transition-colors duration-200 relative group"
+                className="w-1 xl:w-1.5 2xl:w-2 bg-gray-200 dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 cursor-col-resize transition-colors duration-200 relative group"
                 onMouseDown={handleMouseDown}
               >
-                <div className="absolute transform w-1 h-[600px] bg-gray-400 dark:bg-gray-500 rounded opacity-100 group-hover:bg-blue-400 dark:group-hover:bg-blue-500 transition-all duration-200" />
+                <div className="absolute transform w-1 xl:w-1.5 2xl:w-2 h-[600px] xl:h-[700px] 2xl:h-[800px] bg-gray-400 dark:bg-gray-500 rounded opacity-100 group-hover:bg-blue-400 dark:group-hover:bg-blue-500 transition-all duration-200" />
               </div>
               
               <div 
-                className="h-[600px]"
+                className="h-[600px] xl:h-[700px] 2xl:h-[800px]"
                 style={{ width: `${100 - dividerPosition}%` }}
               >
                 <ResumeReviewAI userMetadata={userMetadata} resumeText={resumeExtractedHtml} setUserMetadata={setUserMetadata} matches={matches} />

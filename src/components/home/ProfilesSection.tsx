@@ -118,7 +118,7 @@ export default function ProfilesSection({
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 <CountdownTimer />
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-4 md:gap-6 lg:gap-8">
                 {isLoading ? (
                   <div className="col-span-full flex justify-center">
                     <Spinner />

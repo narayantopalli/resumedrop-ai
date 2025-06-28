@@ -82,44 +82,44 @@ const SuggestedEdits = ({
   };
 
   return (
-    <div className="mt-3 space-y-2">
-      <div className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+    <div className="mt-3 xl:mt-4 space-y-2 xl:space-y-3">
+      <div className="text-xs xl:text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
         Suggested Edits
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 xl:space-y-3">
         {edits.filter(edit => resumeText.includes(edit.original)).map((edit, index) => (
-          <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-start gap-2">
-              <div className="flex-shrink-0 w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+          <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 xl:p-4 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-start gap-2 xl:gap-3">
+              <div className="flex-shrink-0 w-2 h-2 xl:w-3 xl:h-3 bg-red-500 rounded-full mt-2"></div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Original</div>
-                <div className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded border-l-2 border-red-500">
+                <div className="text-xs xl:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 xl:mb-2">Original</div>
+                <div className="text-sm xl:text-base text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 px-2 py-1 xl:px-3 xl:py-2 rounded border-l-2 border-red-500">
                   {edit.original}
                 </div>
               </div>
             </div>
-            <div className="flex items-start gap-2 mt-2">
-              <div className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+            <div className="flex items-start gap-2 xl:gap-3 mt-2 xl:mt-3">
+              <div className="flex-shrink-0 w-2 h-2 xl:w-3 xl:h-3 bg-green-500 rounded-full mt-2"></div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Suggested</div>
-                <div className="text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded border-l-2 border-green-500">
+                <div className="text-xs xl:text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 xl:mb-2">Suggested</div>
+                <div className="text-sm xl:text-base text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 px-2 py-1 xl:px-3 xl:py-2 rounded border-l-2 border-green-500">
                   {edit.suggested}
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2 xl:gap-3 mt-3 xl:mt-4">
               <button
                 onClick={() => applyEdit(edit)}
-                className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                className="flex items-center gap-1 xl:gap-2 px-2 py-1 xl:px-3 xl:py-1.5 bg-green-600 text-white text-xs xl:text-sm rounded hover:bg-green-700 transition-colors"
               >
-                <FiCheck className="w-3 h-3" />
+                <FiCheck className="w-3 h-3 xl:w-4 xl:h-4" />
                 Apply
               </button>
               <button
                 onClick={() => declineEdit(edit)}
-                className="flex items-center gap-1 px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors"
+                className="flex items-center gap-1 xl:gap-2 px-2 py-1 xl:px-3 xl:py-1.5 bg-gray-500 text-white text-xs xl:text-sm rounded hover:bg-gray-600 transition-colors"
               >
-                <FiX className="w-3 h-3" />
+                <FiX className="w-3 h-3 xl:w-4 xl:h-4" />
                 Decline
               </button>
             </div>
@@ -361,21 +361,21 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       {chatHeader}
       
       {/* Chat Messages */}
-      <div ref={messagesContainerRef} className="flex-1 p-4 space-y-4 overflow-y-auto min-h-0">
+      <div ref={messagesContainerRef} className="flex-1 p-4 xl:p-6 space-y-4 xl:space-y-6 overflow-y-auto min-h-0">
         {messages && messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] px-3 py-2 rounded-lg ${
+              className={`max-w-[80%] xl:max-w-[75%] 2xl:max-w-[70%] px-3 py-2 xl:px-4 xl:py-3 rounded-lg ${
                 message.type === 'user'
                   ? 'bg-blue-500 text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
               }`}
             >
               <div 
-                className="text-sm font-medium leading-relaxed"
+                className="text-sm xl:text-base font-medium leading-relaxed"
                 style={{
                   fontFamily: `"Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive`
                 }}
@@ -401,7 +401,7 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
                   ) : null;
                 })()
               )}
-              <div className={`text-xs mt-1 ${
+              <div className={`text-xs xl:text-sm mt-1 ${
                 message.type === 'user' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
               }`}>
               </div>
@@ -411,10 +411,10 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
 
         {isAnalyzing && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-3 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                <span className="text-sm font-medium" style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive' }}>
+            <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-3 xl:px-6 xl:py-4 rounded-lg">
+              <div className="flex items-center gap-2 xl:gap-3">
+                <div className="animate-spin rounded-full h-4 w-4 xl:h-5 xl:w-5 border-b-2 border-blue-500"></div>
+                <span className="text-sm xl:text-base font-medium" style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive' }}>
                   AI is thinking... 🤔
                 </span>
               </div>
@@ -424,18 +424,18 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       </div>
 
       {/* Template Prompts */}
-      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 relative mb-14">
+      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 relative mb-14 xl:mb-16">
         <div className="absolute top-full left-0 right-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 dark:from-blue-600 dark:via-indigo-600 dark:to-purple-600 z-10">
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide p-3">
+            <div className="flex gap-1.5 xl:gap-2 overflow-x-auto scrollbar-hide p-3 xl:p-4">
               {templatePrompts.map((template) => (
                 <button
                   key={template.id}
                   onClick={() => handleTemplateClick(template.prompt)}
-                  className="group flex-shrink-0 px-3 py-2 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-xl hover:bg-white hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white transition-all duration-300 border border-white/20 dark:border-gray-600/50 hover:border-white/40 dark:hover:border-gray-500/70 hover:shadow-lg hover:scale-105 whitespace-nowrap relative overflow-hidden backdrop-blur-sm"
+                  className="group flex-shrink-0 px-3 py-2 xl:px-4 xl:py-2.5 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 text-xs xl:text-sm font-medium rounded-xl hover:bg-white hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white transition-all duration-300 border border-white/20 dark:border-gray-600/50 hover:border-white/40 dark:hover:border-gray-500/70 hover:shadow-lg hover:scale-105 whitespace-nowrap relative overflow-hidden backdrop-blur-sm"
                   title={template.prompt}
                 >
-                  <div className="flex items-center gap-2 relative z-10">
-                    <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300"></div>
+                  <div className="flex items-center gap-2 xl:gap-3 relative z-10">
+                    <div className="w-2 h-2 xl:w-3 xl:h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300"></div>
                     <span>{template.title}</span>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-600/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -446,20 +446,20 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       </div>
 
       {/* Chat Input */}
-      <div className="p-4 pt-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div className="flex gap-2">
+      <div className="p-4 xl:p-6 pt-2 xl:pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex gap-2 xl:gap-3">
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask me anything! ✨"
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-700 dark:text-white text-sm"
+            className="flex-1 px-3 py-2 xl:px-4 xl:py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-700 dark:text-white text-sm xl:text-base"
             rows={1}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim() || isAnalyzing}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed self-end"
+            className="px-4 py-2 xl:px-6 xl:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed self-end xl:text-base xl:font-medium"
           >
             Send
           </button>

@@ -38,7 +38,7 @@ export default function Settings() {
       )}
 
       {/* Section Navigation */}
-      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-1 bg-white dark:bg-neutral-800 p-1 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-1 bg-white dark:bg-neutral-800 p-1 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 max-w-2xl xl:max-w-3xl 2xl:max-w-4xl">
         {sections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
@@ -47,13 +47,13 @@ export default function Settings() {
             <button
               key={section.id}
               onClick={() => {setActiveSection(section.id); setMessage(null)}}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-200 sm:flex-1 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-200 sm:flex-1 xl:px-6 2xl:px-8 ${
                 isActive
                   ? "bg-accent-600 text-white shadow-sm"
                   : "text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 xl:w-5 xl:h-5" />
               <span style={{ whiteSpace: 'nowrap' }}>{section.label}</span>
             </button>
           );
