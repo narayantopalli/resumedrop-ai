@@ -24,6 +24,8 @@ export const plainTextToHtml = async (text: string) => {
             `},
             { role: "user", content: text }
         ],
+        max_tokens: 2000,
+        temperature: 0.1
     });
     return response.choices[0].message.content;
 };
