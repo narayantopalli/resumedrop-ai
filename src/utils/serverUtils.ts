@@ -7,7 +7,7 @@ export function htmlToPlainText(html: string): string {
   if (!html) return '';
   
   // Remove HTML tags and convert common block elements to line breaks
-  let text = html
+  const text = html
     // Replace block elements with line breaks
     .replace(/<\/?(div|p|h1|h2|h3|h4|h5|h6|br|li)[^>]*>/gi, '\n')
     // Replace other HTML tags with empty string
