@@ -14,6 +14,7 @@ export const plainTextToHtml = async (text: string) => {
                 Do not change the content of the text in any way, and do not lose any information.
                 Convert the plain text into nicely formatted html.
                 The html should be well structured and easy to read.
+                Use lists to improve readability!
                 The html should not contain a style tag or any other tags that are not part of the html standard.
                 Your response should be in the following format:
                 <html>
