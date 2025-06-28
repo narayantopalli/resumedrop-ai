@@ -86,13 +86,13 @@ export async function GET(request: NextRequest) {
           }
 
           // Check if user has a resume uploaded
-          const { data: resumeExtractedText, error: resumeExtractedTextError } = await supabase
+          const { data: resumeExtractedHtml, error: resumeExtractedHtmlError } = await supabase
             .from('resume_text')
             .select('extraction')
             .eq('id', data.user.id)
             .single();
 
-          if (resumeExtractedTextError || !resumeExtractedText || resumeExtractedText.extraction === null) {
+          if (resumeExtractedHtmlError || !resumeExtractedHtml || resumeExtractedHtml.extraction === null) {
             // User doesn't have a resume, redirect to upload page
             return NextResponse.redirect(new URL('/upload', requestUrl.origin));
           } else {

@@ -145,3 +145,95 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Safari and Chrome */
 }
+
+/* Text Editor Styles */
+.text-editor {
+  /* Base text styles */
+  color: rgb(31, 41, 55);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.text-editor h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem 0;
+  color: rgb(17, 24, 39);
+}
+
+.text-editor h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+  color: rgb(17, 24, 39);
+}
+
+.text-editor h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem 0;
+  color: rgb(17, 24, 39);
+}
+
+.text-editor p {
+  margin: 0.5rem 0;
+  color: rgb(31, 41, 55);
+}
+
+.text-editor strong {
+  font-weight: 600;
+  color: rgb(17, 24, 39);
+}
+
+.text-editor em {
+  font-style: italic;
+  color: rgb(31, 41, 55);
+}
+
+.text-editor ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+  color: rgb(31, 41, 55);
+}
+
+.text-editor ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-type: decimal;
+  color: rgb(31, 41, 55);
+}
+
+.text-editor li {
+  margin: 0.25rem 0;
+  color: rgb(31, 41, 55);
+}
+
+/* Dark mode styles */
+.dark .text-editor {
+  color: rgb(229, 231, 235);
+}
+
+.dark .text-editor h1,
+.dark .text-editor h2,
+.dark .text-editor h3 {
+  color: rgb(255, 255, 255);
+}
+
+.dark .text-editor p {
+  color: rgb(229, 231, 235);
+}
+
+.dark .text-editor strong {
+  color: rgb(255, 255, 255);
+}
+
+.dark .text-editor em {
+  color: rgb(229, 231, 235);
+}
+
+.dark .text-editor ul,
+.dark .text-editor ol,
+.dark .text-editor li {
+  color: rgb(229, 231, 235);
+}

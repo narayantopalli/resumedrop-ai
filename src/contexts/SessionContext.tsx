@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Session } from '@supabase/supabase-js'
 import { createLocalImageUrl } from '@/utils/imageUtils';
 import { createLocalResumeUrl } from '@/utils/resumeUtils';
-import { getResumeExtractedText } from '@/actions/resume';
+import { getResumeExtractedHtml } from '@/actions/resume';
 import { signOut as signOutServer } from '@/actions/auth';
 
 interface SessionContextType {
@@ -18,8 +18,8 @@ interface SessionContextType {
   setAvatarUrl: any;
   resumeInfo: {url: string, updated_at: string, fileExt: string} | null;
   setResumeInfo: any;
-  resumeExtractedText: string | null;
-  setResumeExtractedText: any;
+  resumeExtractedHtml: string | null;
+  setResumeExtractedHtml: any;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -35,7 +35,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [resumeInfo, setResumeInfo] = useState<{url: string, updated_at: string, fileExt: string} | null>(null);
-  const [resumeExtractedText, setResumeExtractedText] = useState<string | null>(null);
+  const [resumeExtractedHtml, setResumeExtractedHtml] = useState<string | null>(null);
 
   // Memoize userMetadata values to prevent unnecessary re-renders
   const avatarUrlFromMetadata = useMemo(() => userMetadata?.avatar_url, [userMetadata?.avatar_url]);
@@ -59,11 +59,11 @@ export function SessionProvider({ children }: SessionProviderProps) {
   useEffect(() => {
     if (resumeUrlFromMetadata && userId) {
       // Fetch extracted text
-      getResumeExtractedText(userId).then((result: any) => {
+      getResumeExtractedHtml(userId).then((result: any) => {
         if (result.success) {
-          setResumeExtractedText(result.text);
+          setResumeExtractedHtml(result.text);
         } else {
-          setResumeExtractedText(null);
+          setResumeExtractedHtml(null);
         }
       });
 
@@ -77,7 +77,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
       });
     } else {
       setResumeInfo(null);
-      setResumeExtractedText(null);
+      setResumeExtractedHtml(null);
     }
   }, [resumeUrlFromMetadata, userId]);
 
@@ -164,7 +164,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
         setUserMetadata(null);
         setAvatarUrl(null);
         setResumeInfo(null);
-        setResumeExtractedText(null);
+        setResumeExtractedHtml(null);
         
         // Clear all localStorage fields
         if (typeof window !== 'undefined') {
@@ -204,8 +204,8 @@ export function SessionProvider({ children }: SessionProviderProps) {
       setAvatarUrl,
       resumeInfo,
       setResumeInfo,
-      resumeExtractedText,
-      setResumeExtractedText
+      resumeExtractedHtml,
+      setResumeExtractedHtml
     }}>
       {children}
     </SessionContext.Provider>

@@ -18,7 +18,7 @@ type TabView = 'resume-review' | 'profiles';
 
 // Component that uses useSearchParams - needs to be wrapped in Suspense
 function HomePageContent() {
-  const { userMetadata, resumeInfo, resumeExtractedText, setUserMetadata } = useSession();
+  const { userMetadata, resumeInfo, resumeExtractedHtml, setUserMetadata } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [matches, setMatches] = useState<Profile[]>([]);
@@ -50,6 +50,8 @@ function HomePageContent() {
   
     // if we already have an open channel for this user, do nothing
     if (channelRef.current) return;
+
+    
   
     const channel = supabase
       .channel(`suggested_matches-${userMetadata.id}`)
@@ -63,15 +65,31 @@ function HomePageContent() {
         },
         async (payload) => {
           if (payload.new === null) return;
-          const newMatches = matches.filter((match: any) => match.match.id !== (payload.new as any).match.id);
-          const newMatch = await getProfile((payload.new as any).match.id);
-          newMatches.push({
-            ...(payload.new as any).match,
-            name: newMatch?.name,
-            avatar_url: newMatch?.avatar_url,
-            contactInfo: newMatch?.contactInfo
+          setMatches(currentMatches => {
+            // Add null checks to prevent runtime errors
+            const newMatchId = (payload.new as any)?.match?.id;
+            if (!newMatchId) return currentMatches;
+            
+            const newMatches = currentMatches.filter((match: any) => {
+              // Handle both possible structures: match.match.id and match.id
+              const matchId = match?.match?.id || match?.id;
+              return matchId !== newMatchId;
+            });
+            return newMatches;
           });
-          setMatches(newMatches);
+          
+          const newMatch = await getProfile((payload.new as any).match.id);
+          
+          setMatches(currentMatches => {
+            const updatedMatches = [...currentMatches];
+            updatedMatches.push({
+              ...(payload.new as any).match,
+              name: newMatch?.name,
+              avatar_url: newMatch?.avatar_url,
+              contactInfo: newMatch?.contactInfo
+            });
+            return updatedMatches;
+          });
         }
       ).on(
         'postgres_changes',
@@ -81,8 +99,17 @@ function HomePageContent() {
           table: 'suggested_matches'
         },
         async (payload) => {
-          const newMatches = matches.filter((match: any) => match.match.id !== (payload.old as any).match.id);
-          setMatches(newMatches);
+          setMatches(currentMatches => {
+            // Add null checks to prevent runtime errors
+            const deletedMatchId = (payload.old as any)?.match?.id;
+            if (!deletedMatchId) return currentMatches;
+            
+            return currentMatches.filter((match: any) => {
+              // Handle both possible structures: match.match.id and match.id
+              const matchId = match?.match?.id || match?.id;
+              return matchId !== deletedMatchId;
+            });
+          });
         }
       )
       .subscribe();
@@ -222,7 +249,7 @@ function HomePageContent() {
   return (
     <div className="flex flex-col">
       {/* Tab Navigation */}
-      <div className="mb-2">
+      <div className="mb-1">
         <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="-mb-px flex space-x-8 justify-between items-center" aria-label="Tabs">
             <div className="flex space-x-8">
@@ -282,11 +309,11 @@ function HomePageContent() {
               <div className="h-[400px] w-full">
                 <ResumePreview
                   resumeUpdatedAt={resumeInfo?.updated_at || null}
-                  resumeExtractedText={resumeExtractedText}
+                  resumeExtractedHtml={resumeExtractedHtml}
                 />
               </div>
               <div className="h-[400px] w-full">
-                <ResumeReviewAI userMetadata={userMetadata} resumeText={resumeExtractedText} setUserMetadata={setUserMetadata} matches={matches} />
+                <ResumeReviewAI userMetadata={userMetadata} resumeText={resumeExtractedHtml} setUserMetadata={setUserMetadata} matches={matches} />
               </div>
             </div>
 
@@ -298,7 +325,7 @@ function HomePageContent() {
               >
                 <ResumePreview
                   resumeUpdatedAt={resumeInfo?.updated_at || null}
-                  resumeExtractedText={resumeExtractedText}
+                  resumeExtractedHtml={resumeExtractedHtml}
                 />
               </div>
               
@@ -313,7 +340,7 @@ function HomePageContent() {
                 className="h-[600px]"
                 style={{ width: `${100 - dividerPosition}%` }}
               >
-                <ResumeReviewAI userMetadata={userMetadata} resumeText={resumeExtractedText} setUserMetadata={setUserMetadata} matches={matches} />
+                <ResumeReviewAI userMetadata={userMetadata} resumeText={resumeExtractedHtml} setUserMetadata={setUserMetadata} matches={matches} />
               </div>
             </div>
           </>

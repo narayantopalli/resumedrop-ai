@@ -134,7 +134,6 @@ Deno.serve(async (req: Request) => {
      = await supabaseClient.from('resume_embeddings')
     .select('id, embedding, summary, profile:profiles!resume_embeddings_id_fkey(id, college)')
     .eq('profile.isPublic', true)
-    .eq('isUpdated', true)
     .eq('isMatched', false);
 
     if (allPublicResumesError) {
@@ -193,6 +192,11 @@ Deno.serve(async (req: Request) => {
         const topMatches = data.length > NUM_MATCHES 
           ? orderedRandomSample(data, NUM_MATCHES)
           : data;
+
+        // Don't process resumes with a summary less than 25 characters
+        if (resume.summary.length < 25) {
+          throw new Error('Resume summary is too short');
+        }
 
         // Generate notes for the matches
         const note = await getNote(resume.summary, topMatches[0]?.profile.name || '', topMatches[0]?.summary || '', topMatches[1]?.profile.name || '', topMatches[1]?.summary || '', topMatches[2]?.profile.name || '', topMatches[2]?.summary || '');

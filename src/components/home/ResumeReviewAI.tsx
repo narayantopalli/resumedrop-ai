@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { getChatResponse, getChatsFromDatabase, saveChatsToDatabase, deleteChatsFromDatabase } from '@/actions/chat';
 import { useSession } from '@/contexts/SessionContext';
-import { updateResumeExtractedText } from '@/actions/resume';
+import { updateResumeExtractedHtml } from '@/actions/resume';
 import { FiRotateCcw, FiRotateCw, FiCheck, FiX, FiZap } from 'react-icons/fi';
 
 interface ChatMessage {

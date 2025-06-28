@@ -6,6 +6,20 @@ export interface GenerateDOCXResult {
   error?: string;
 }
 
+// Convert HTML to plain text for DOCX generation
+const htmlToPlainText = (html: string): string => {
+  if (!html) return '';
+  
+  // Create a temporary div to parse HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Convert common HTML elements to appropriate text formatting
+  const text = tempDiv.innerText || tempDiv.textContent || '';
+  
+  return text;
+};
+
 export const generateDOCXFromText = async (
   text: string,
   userId: string
@@ -18,7 +32,17 @@ export const generateDOCXFromText = async (
   }
 
   try {
-    const result = await generateDocx(text, userId);
+    // Convert HTML to plain text if needed
+    const plainText = htmlToPlainText(text);
+    
+    if (!plainText.trim()) {
+      return {
+        success: false,
+        error: 'No text content found for DOCX generation'
+      };
+    }
+
+    const result = await generateDocx(plainText, userId);
 
     if (!result.success) {
       throw new Error(result.error || 'Failed to generate DOCX');

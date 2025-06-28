@@ -38,9 +38,10 @@ export default function ResumeViewModal({ resumeUrl, onClose, fileName, name, up
               <div className="w-full h-full bg-white dark:bg-neutral-900 p-6 overflow-y-auto">
                 {extractedText ? (
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
-                      {extractedText}
-                    </pre>
+                    <div 
+                      className="font-sans text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: extractedText }}
+                    />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full">

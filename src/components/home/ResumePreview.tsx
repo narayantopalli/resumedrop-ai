@@ -1,30 +1,35 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { FiFileText, FiUpload, FiEye, FiCalendar, FiEdit3, FiSave, FiX, FiCopy, FiCheck, FiRotateCcw, FiRotateCw, FiDownload, FiCpu, FiDatabase, FiGlobe } from "react-icons/fi";
 import Link from "next/link";
 import { useSession } from '@/contexts/SessionContext';
-import { updateResumeExtractedText } from '@/actions/resume';
+import { updateResumeExtractedHtml } from '@/actions/resume';
 import { copyToClipboard } from '@/utils/clipboardUtils';
 import { generateDOCXFromText, downloadDOCX } from '@/utils/docxGeneration';
+import TextEditor from './TextEditor';
 
 interface ResumePreviewProps {
   resumeUpdatedAt: string | null;
-  resumeExtractedText: string | null;
+  resumeExtractedHtml: string | null;
 }
 
 export default function ResumePreview({ 
   resumeUpdatedAt,
-  resumeExtractedText
+  resumeExtractedHtml
 }: ResumePreviewProps) {
-  const { session, setResumeExtractedText, userMetadata, setUserMetadata } = useSession();
-  const hasResume = resumeExtractedText != null;
+  const { session, setResumeExtractedHtml, userMetadata, setUserMetadata } = useSession();
+  const hasResume = resumeExtractedHtml != null;
   
   // Editable text states
   const [editableText, setEditableText] = useState<string>('');
-  const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastSavedText, setLastSavedText] = useState<string>('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // Auto-save timer ref
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Copy button states
   const [copied, setCopied] = useState(false);
@@ -44,6 +49,78 @@ export default function ResumePreview({
   // Publish resume states
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+
+  // Auto-save function
+  const autoSave = async () => {
+    if (!session?.user?.id || !hasUnsavedChanges || editableText === lastSavedText) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      const updateResult = await updateResumeExtractedHtml(session.user.id, editableText);
+      if (updateResult.success) {
+        setLastSavedText(editableText);
+        setHasUnsavedChanges(false);
+        setResumeExtractedHtml(editableText);
+        
+        // Add to edit history
+        if (editHistory && currentHistoryIndex !== null) {
+          const newHistoryItem = {
+            original: resumeExtractedHtml || '',
+            suggested: editableText,
+            appliedText: editableText
+          };
+          
+          // Remove any future history items if we're not at the end
+          const newHistory = editHistory.slice(0, currentHistoryIndex + 1);
+          newHistory.push(newHistoryItem);
+          
+          setEditHistory(newHistory);
+          setCurrentHistoryIndex(newHistory.length - 1);
+        }
+      } else {
+        setError(updateResult.error || 'Failed to auto-save. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error auto-saving:', err);
+      setError('Failed to auto-save. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Set up auto-save timer when text changes
+  useEffect(() => {
+    if (hasUnsavedChanges && editableText !== lastSavedText) {
+      // Clear existing timer
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+      
+      // Set new timer for 5 seconds
+      autoSaveTimerRef.current = setTimeout(() => {
+        autoSave();
+      }, 5000);
+    }
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [editableText, hasUnsavedChanges, lastSavedText]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
 
   // Auto-clear error messages after 1 second
   useEffect(() => {
@@ -98,12 +175,26 @@ export default function ResumePreview({
     }
   }, [editHistory, currentHistoryIndex]);
 
-  // Initialize editable text when resumeExtractedText changes
+  // Initialize editable text when resumeExtractedHtml changes
   useEffect(() => {
-    if (resumeExtractedText) {
-      setEditableText(resumeExtractedText);
+    if (resumeExtractedHtml) {
+      // Convert plain text to basic HTML if it's not already HTML
+      let htmlContent = resumeExtractedHtml;
+      if (!resumeExtractedHtml.includes('<') && !resumeExtractedHtml.includes('>')) {
+        // Convert plain text to HTML with line breaks
+        htmlContent = resumeExtractedHtml
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .map(line => `<p>${line}</p>`)
+          .join('');
+      }
+      
+      setEditableText(htmlContent);
+      setLastSavedText(htmlContent);
+      setHasUnsavedChanges(false);
     }
-  }, [resumeExtractedText]);
+  }, [resumeExtractedHtml]);
 
   // Animate ellipsis when AI is thinking
   useEffect(() => {
@@ -120,80 +211,18 @@ export default function ResumePreview({
     }
   }, [isGeneratingDOCX]);
 
-  const handleEditToggle = () => {
-    if (isEditing) {
-      // Cancel editing - revert to original text
-      setEditableText(resumeExtractedText || '');
-      setError(null);
-    }
-    setIsEditing(!isEditing);
+  // Handle text changes
+  const handleTextChange = (newText: string) => {
+    setEditableText(newText);
+    setHasUnsavedChanges(true);
   };
 
-  const handleSaveEdit = async () => {
-    setIsSaving(true);
-    setError(null);
-    try {
-      if (!session?.user?.id) {
-        if (editHistory && currentHistoryIndex !== null) {
-          const newHistoryItem = {
-            original: resumeExtractedText || '',
-            suggested: editableText,
-            appliedText: editableText
-          };
-          
-          // Remove any future history items if we're not at the end
-          const newHistory = editHistory.slice(0, currentHistoryIndex + 1);
-          newHistory.push(newHistoryItem);
-          
-          setEditHistory(newHistory);
-          setCurrentHistoryIndex(newHistory.length - 1);
-        }
-        
-        setResumeExtractedText(editableText);
-        setIsEditing(false);
-        return;
-      }
-      
-      const updateResult = await updateResumeExtractedText(session.user.id, editableText);
-      if (updateResult.success) {
-        // Add user edit to history
-        if (editHistory && currentHistoryIndex !== null) {
-          const newHistoryItem = {
-            original: resumeExtractedText || '',
-            suggested: editableText,
-            appliedText: editableText
-          };
-          
-          // Remove any future history items if we're not at the end
-          const newHistory = editHistory.slice(0, currentHistoryIndex + 1);
-          newHistory.push(newHistoryItem);
-          
-          setEditHistory(newHistory);
-          setCurrentHistoryIndex(newHistory.length - 1);
-        }
-        
-        setResumeExtractedText(editableText);
-        setIsEditing(false);
-      } else {
-        setError(updateResult.error || 'Failed to save edited text. Please try again.');
-      }
-    } catch (err) {
-      console.error('Error saving edited text:', err);
-      setError('Failed to save edited text. Please try again.');
-    } finally {
-      setIsSaving(false);
+  // Handle manual save
+  const handleManualSave = async () => {
+    if (!hasUnsavedChanges || editableText === lastSavedText) {
+      return;
     }
-  };
-
-  const handleCopyText = async () => {
-    const textToCopy = isEditing ? editableText : resumeExtractedText;
-    if (!textToCopy) return;
-    
-    const success = await copyToClipboard(textToCopy);
-    if (success) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    await autoSave();
   };
 
   const handleDownloadDOCX = async () => {
@@ -207,8 +236,7 @@ export default function ResumePreview({
       return;
     }
 
-    const textToDownload = isEditing ? editableText : resumeExtractedText;
-    if (!textToDownload) {
+    if (!editableText) {
       setDocxError('No text available to download');
       return;
     }
@@ -222,7 +250,7 @@ export default function ResumePreview({
       const currentDate = new Date().toLocaleDateString().replace(/\//g, '-');
       const fileName = `${userName}_Resume_${currentDate}.docx`;
 
-      const result = await generateDOCXFromText(textToDownload, session.user.id);
+      const result = await generateDOCXFromText(editableText, session.user.id);
       
       if (result.success && result.url) {
         setUserMetadata((prev: any) => ({
@@ -243,20 +271,26 @@ export default function ResumePreview({
 
   // Apply edit from chat
   const applyEdit = async (edit: { original: string; suggested: string; }) => {
-    if (!resumeExtractedText || !session?.user?.id || !editHistory || currentHistoryIndex === null) return;
+    if (!resumeExtractedHtml || !session?.user?.id || !editHistory || currentHistoryIndex === null) return;
 
     setIsApplyingEdit(true);
     try {
+      // Convert plain text to HTML for the edit
+      const originalHtml = edit.original.includes('<') ? edit.original : `<p>${edit.original}</p>`;
+      const suggestedHtml = edit.suggested.includes('<') ? edit.suggested : `<p>${edit.suggested}</p>`;
+      
       // Replace the original text with suggested text
-      const newText = resumeExtractedText.replace(edit.original, edit.suggested);
+      const newText = resumeExtractedHtml.replace(originalHtml, suggestedHtml);
       
       // Update the resume text in the database
-      const updateResult = await updateResumeExtractedText(session.user.id, newText);
+      const updateResult = await updateResumeExtractedHtml(session.user.id, newText);
       
       if (updateResult.success) {
         // Update the global state
-        setResumeExtractedText(newText);
+        setResumeExtractedHtml(newText);
         setEditableText(newText);
+        setLastSavedText(newText);
+        setHasUnsavedChanges(false);
         
         // Add to edit history
         const newHistoryItem = {
@@ -288,18 +322,22 @@ export default function ResumePreview({
       const historyItem = editHistory[currentHistoryIndex];
       const previousText = currentHistoryIndex > 0 
         ? editHistory[currentHistoryIndex - 1].appliedText 
-        : resumeExtractedText?.replace(historyItem.suggested, historyItem.original) || '';
+        : resumeExtractedHtml?.replace(historyItem.suggested, historyItem.original) || '';
       if (session?.user?.id) {
-        const updateResult = await updateResumeExtractedText(session.user.id, previousText);
+        const updateResult = await updateResumeExtractedHtml(session.user.id, previousText);
       
         if (updateResult.success) {
-          setResumeExtractedText(previousText);
+          setResumeExtractedHtml(previousText);
           setEditableText(previousText);
+          setLastSavedText(previousText);
+          setHasUnsavedChanges(false);
           setCurrentHistoryIndex(currentHistoryIndex - 1);
         }
       } else {
-        setResumeExtractedText(previousText);
+        setResumeExtractedHtml(previousText);
         setEditableText(previousText);
+        setLastSavedText(previousText);
+        setHasUnsavedChanges(false);
         setCurrentHistoryIndex(currentHistoryIndex - 1);
       }
     } catch (error) {
@@ -317,16 +355,20 @@ export default function ResumePreview({
     try {
       const historyItem = editHistory[currentHistoryIndex + 1];
       if (session?.user?.id) {
-        const updateResult = await updateResumeExtractedText(session.user.id, historyItem.appliedText);
+        const updateResult = await updateResumeExtractedHtml(session.user.id, historyItem.appliedText);
         
         if (updateResult.success) {
-          setResumeExtractedText(historyItem.appliedText);
+          setResumeExtractedHtml(historyItem.appliedText);
           setEditableText(historyItem.appliedText);
+          setLastSavedText(historyItem.appliedText);
+          setHasUnsavedChanges(false);
           setCurrentHistoryIndex(currentHistoryIndex + 1);
         }
       } else {
-        setResumeExtractedText(historyItem.appliedText);
+        setResumeExtractedHtml(historyItem.appliedText);
         setEditableText(historyItem.appliedText);
+        setLastSavedText(historyItem.appliedText);
+        setHasUnsavedChanges(false);
         setCurrentHistoryIndex(currentHistoryIndex + 1);
       }
     } catch (error) {
@@ -341,7 +383,7 @@ export default function ResumePreview({
     if (typeof window !== 'undefined') {
       (window as any).applyResumeEdit = applyEdit;
     }
-  }, [resumeExtractedText, session?.user?.id, editHistory, currentHistoryIndex]);
+  }, [resumeExtractedHtml, session?.user?.id, editHistory, currentHistoryIndex]);
 
   // Calculate undo/redo states
   const canUndo = useMemo(() => {
@@ -358,7 +400,7 @@ export default function ResumePreview({
       return;
     }
 
-    if (!resumeExtractedText) {
+    if (!editableText) {
       setPublishError('No resume content to update');
       return;
     }
@@ -370,9 +412,9 @@ export default function ResumePreview({
       // wait 1 second
       await new Promise(resolve => setTimeout(resolve, 1000));
       // update resume extracted text and update public version
-      const updateResult = await updateResumeExtractedText(session.user.id, resumeExtractedText, true);
+      const updateResult = await updateResumeExtractedHtml(session.user.id, editableText, true);
       if (updateResult.success) {
-        setResumeExtractedText(resumeExtractedText);
+        setResumeExtractedHtml(editableText);
       } else {
         setPublishError(updateResult.error || 'Failed to update resume. Please try again.');
       }
@@ -412,7 +454,7 @@ export default function ResumePreview({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="px-4 pt-2 pb-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -420,15 +462,12 @@ export default function ResumePreview({
               disabled={isPublishing || !hasResume}
               className="group relative inline-flex items-center gap-3 w-44 py-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transform hover:scale-105 disabled:hover:scale-100"
             >
-              <div className="ml-2 flex items-center justify-center w-10 h-10 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
-                <FiGlobe className={`w-5 h-5 ${isPublishing ? 'animate-spin' : ''}`} />
+              <div className="ml-2 flex items-center justify-center w-6 h-6 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
+                <FiGlobe className={`w-4 h-4 ${isPublishing ? 'animate-spin' : ''}`} />
               </div>
               <div className="text-left">
                 <div className="font-semibold text-white text-sm leading-tight">
                   {isPublishing ? 'Updating...' : 'Update Resume'}
-                </div>
-                <div className="text-xs text-orange-100 opacity-90">
-                  Use for networking!
                 </div>
               </div>
             </button>
@@ -453,54 +492,40 @@ export default function ResumePreview({
                 <FiRotateCw className="w-4 h-4" />
               </button>
             </div>
-            {resumeUpdatedAt && (
-              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                <FiCalendar className="w-3 h-3" />
-                <span>
-                  {new Date(resumeUpdatedAt).toLocaleDateString()}
-                </span>
+            {hasUnsavedChanges && (editableText !== lastSavedText) ? (
+              <div className="flex items-center gap-1">
+                {isSaving ? (
+                  <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleManualSave}
+                    className="flex items-center gap-1 text-xs text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
+                  >
+                    <FiEdit3 className="w-3 h-3" />
+                    <span>Save</span>
+                  </button>
+                )}
               </div>
+            ) : (
+              resumeUpdatedAt && (
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                  <FiCalendar className="w-3 h-3" />
+                  <span>
+                    {new Date(resumeUpdatedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              )
             )}
           </div>
         </div>
       </div>
 
       {/* Resume Content */}
-      <div className="flex-1 p-4 overflow-hidden">
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 h-full flex flex-col">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 flex-shrink-0">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2 sm:mb-0">
-              Extracted Text
-            </h4>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleCopyText}
-                className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700 transition-colors flex items-center gap-1"
-              >
-                {copied ? <FiCheck className="w-3 h-3" /> : <FiCopy className="w-3 h-3" />}
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-              <button
-                onClick={handleEditToggle}
-                disabled={isSaving || isApplyingEdit}
-                className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                {isEditing ? <FiX className="w-3 h-3" /> : <FiEdit3 className="w-3 h-3" />}
-                {isEditing ? 'Cancel' : 'Edit'}
-              </button>
-              {isEditing && (
-                <button
-                  onClick={handleSaveEdit}
-                  disabled={isSaving}
-                  className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                  <FiSave className="w-3 h-3" />
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
-              )}
-            </div>
-          </div>
-
+      <div className="flex-1 p-1 pt-0 overflow-hidden">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-b-lg p-2 pt-0 border border-t-0 border-gray-200 dark:border-gray-600 h-full flex flex-col">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-3">
               <p className="text-red-700 dark:text-red-300 text-xs">{error}</p>
@@ -528,19 +553,13 @@ export default function ResumePreview({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto">
-            {isEditing ? (
-              <textarea
-                value={editableText}
-                onChange={(e) => setEditableText(e.target.value)}
-                className="w-full h-full p-3 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Edit the extracted text here..."
-              />
-            ) : (
-              <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                {resumeExtractedText}
-              </div>
-            )}
+          <div className="flex-1 min-h-0">
+            <TextEditor
+              value={editableText}
+              onChange={handleTextChange}
+              className="w-full h-full"
+              placeholder="Edit your resume text here... (Auto-saves every 5 seconds)"
+            />
           </div>
 
           {/* Download DOCX Button at Bottom */}

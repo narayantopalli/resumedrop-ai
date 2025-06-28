@@ -63,12 +63,12 @@ function SignInForm() {
       if (error) {
         setError(error.message);
       } else {
-        const { data: resumeExtractedText, error: resumeExtractedTextError } = await supabase.from('resume_text').select('extraction').eq('id', data.user.id);
-        if (resumeExtractedTextError) {
-          console.error('Error getting resume extracted text:', resumeExtractedTextError);
+        const { data: resumeExtractedHtml, error: resumeExtractedHtmlError } = await supabase.from('resume_text').select('extraction').eq('id', data.user.id);
+        if (resumeExtractedHtmlError) {
+          console.error('Error getting resume extracted html:', resumeExtractedHtmlError);
           router.push("/upload");
         }
-        if (resumeExtractedText === undefined || resumeExtractedText === null || resumeExtractedText[0].extraction === null) {
+        if (resumeExtractedHtml === undefined || resumeExtractedHtml === null || resumeExtractedHtml[0].extraction === null) {
           router.push("/upload");
         }
         router.push("/home");

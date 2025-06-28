@@ -2,7 +2,9 @@
 
 import { createClient } from '@supabase/supabase-js';
 import mammoth from 'mammoth';
-import parse from 'pdf-parse/lib/pdf-parse.js';
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { htmlToPlainText } from '../utils/serverUtils';
+import { plainTextToHtml } from './html';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -158,11 +160,18 @@ export async function getResumeBlob(url: string): Promise<{ success: boolean; bl
   }
 }
 
-export async function updateResumeExtractedText(userId: string, text: string, publicUpdate: boolean = false): Promise<{ success: boolean; error?: string }> {
+export async function updateResumeExtractedHtml(userId: string, text: string, publicUpdate: boolean = false): Promise<{ success: boolean; error?: string }> {
   try {
     let error: any;
     if (publicUpdate) {
-      ({ error } = await supabase.from('resume_text').upsert({ extraction: text, created_at: new Date().toISOString(), id: userId, public_extraction: text}));
+      // Convert HTML to plain text for public_extraction
+      const plainText = htmlToPlainText(text);
+      ({ error } = await supabase.from('resume_text').upsert({ 
+        extraction: text, 
+        created_at: new Date().toISOString(), 
+        id: userId, 
+        public_extraction: plainText
+      }));
     } else { 
       ({ error } = await supabase.from('resume_text').upsert({ extraction: text, created_at: new Date().toISOString(), id: userId}));
     }
@@ -185,7 +194,7 @@ export async function updateResumeExtractedText(userId: string, text: string, pu
   }
 }
 
-export async function getResumeExtractedText(userId: string): Promise<{ success: boolean; text?: string; error?: string }> {
+export async function getResumeExtractedHtml(userId: string): Promise<{ success: boolean; text?: string; error?: string }> {
   try {
     const { data, error } = await supabase.from('resume_text').select('extraction').eq('id', userId);
     if (error) {
@@ -234,14 +243,12 @@ export async function extractTextFromResume(url: string): Promise<TextExtraction
     const urlLower = url.toLowerCase();
     const isTxt = urlLower.endsWith('.txt');
     
+    let extractedText = '';
+    
     if (isTxt) {
       // For TXT files, read the text directly
       try {
-        const text = await response.text();
-        return {
-          success: true,
-          text: text
-        };
+        extractedText = await response.text();
       } catch (txtError) {
         console.error('TXT reading error:', txtError);
         return {
@@ -249,48 +256,66 @@ export async function extractTextFromResume(url: string): Promise<TextExtraction
           error: 'Failed to read TXT file. The file might be corrupted.'
         };
       }
+    } else {
+      const buffer = await response.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      // Check if it's a PDF by looking at the first few bytes
+      const isPDF = uint8Array.length >= 4 && 
+        uint8Array[0] === 0x25 && // %
+        uint8Array[1] === 0x50 && // P
+        uint8Array[2] === 0x44 && // D
+        uint8Array[3] === 0x46;   // F
+
+      if (isPDF) {
+        // Extract text from PDF
+        try {
+          const pdfData = await pdfParse(Buffer.from(uint8Array));
+          extractedText = pdfData.text;
+        } catch (pdfError) {
+          console.error('PDF parsing error:', pdfError);
+          return {
+            success: false,
+            error: 'Failed to extract text from PDF. The file might be corrupted or password protected.'
+          };
+        }
+      } else {
+        // Extract text from DOCX
+        try {
+          const result = await mammoth.extractRawText({ buffer: Buffer.from(uint8Array) });
+          extractedText = result.value;
+        } catch (docxError) {
+          console.error('DOCX parsing error:', docxError);
+          return {
+            success: false,
+            error: 'Failed to extract text from DOCX. The file might be corrupted.'
+          };
+        }
+      }
     }
 
-    const buffer = await response.arrayBuffer();
-    const uint8Array = new Uint8Array(buffer);
-
-    // Check if it's a PDF by looking at the first few bytes
-    const isPDF = uint8Array.length >= 4 && 
-      uint8Array[0] === 0x25 && // %
-      uint8Array[1] === 0x50 && // P
-      uint8Array[2] === 0x44 && // D
-      uint8Array[3] === 0x46;   // F
-
-    if (isPDF) {
-      // Extract text from PDF
-      try {
-        const pdfData = await parse(Buffer.from(uint8Array));
+    // Convert plain text to HTML
+    try {
+      const htmlContent = await plainTextToHtml(extractedText);
+      if (htmlContent) {
         return {
           success: true,
-          text: pdfData.text
+          text: htmlContent
         };
-      } catch (pdfError) {
-        console.error('PDF parsing error:', pdfError);
+      } else {
+        // Fail if HTML conversion returns null
         return {
           success: false,
-          error: 'Failed to extract text from PDF. The file might be corrupted or password protected.'
+          error: 'Failed to convert text to HTML format'
         };
       }
-    } else {
-      // Extract text from DOCX
-      try {
-        const result = await mammoth.extractRawText({ buffer: Buffer.from(uint8Array) });
-        return {
-          success: true,
-          text: result.value
-        };
-      } catch (docxError) {
-        console.error('DOCX parsing error:', docxError);
-        return {
-          success: false,
-          error: 'Failed to extract text from DOCX. The file might be corrupted.'
-        };
-      }
+    } catch (htmlError) {
+      console.error('HTML conversion error:', htmlError);
+      // Fail the upload if HTML conversion fails
+      return {
+        success: false,
+        error: 'Failed to convert text to HTML format. Please try again.'
+      };
     }
   } catch (error) {
     console.error('Error extracting text from resume:', error);
@@ -307,14 +332,12 @@ export async function extractTextFromFile(file: File): Promise<TextExtractionRes
     const fileName = file.name.toLowerCase();
     const isTxt = fileName.endsWith('.txt');
     
+    let extractedText = '';
+    
     if (isTxt) {
       // For TXT files, read the text directly
       try {
-        const text = await file.text();
-        return {
-          success: true,
-          text: text
-        };
+        extractedText = await file.text();
       } catch (txtError) {
         console.error('TXT reading error:', txtError);
         return {
@@ -322,48 +345,66 @@ export async function extractTextFromFile(file: File): Promise<TextExtractionRes
           error: 'Failed to read TXT file. The file might be corrupted.'
         };
       }
-    }
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Check if it's a PDF by looking at the first few bytes
-    const isPDF = uint8Array.length >= 4 && 
-      uint8Array[0] === 0x25 && // %
-      uint8Array[1] === 0x50 && // P
-      uint8Array[2] === 0x44 && // D
-      uint8Array[3] === 0x46;   // F
-
-    if (isPDF) {
-      // Extract text from PDF
-      try {
-        const pdfData = await parse(Buffer.from(uint8Array));
-        return {
-          success: true,
-          text: pdfData.text
-        };
-      } catch (pdfError) {
-        console.error('PDF parsing error:', pdfError);
-        return {
-          success: false,
-          error: 'Failed to extract text from PDF. The file might be corrupted or password protected.'
-        };
-      }
     } else {
-      // Extract text from DOCX
-      try {
-        const result = await mammoth.extractRawText({ buffer: Buffer.from(uint8Array) });
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      // Check if it's a PDF by looking at the first few bytes
+      const isPDF = uint8Array.length >= 4 && 
+        uint8Array[0] === 0x25 && // %
+        uint8Array[1] === 0x50 && // P
+        uint8Array[2] === 0x44 && // D
+        uint8Array[3] === 0x46;   // F
+
+      if (isPDF) {
+        // Extract text from PDF
+        try {
+          const pdfData = await pdfParse(Buffer.from(uint8Array));
+          extractedText = pdfData.text;
+        } catch (pdfError) {
+          console.error('PDF parsing error:', pdfError);
+          return {
+            success: false,
+            error: 'Failed to extract text from PDF. The file might be corrupted or password protected.'
+          };
+        }
+      } else {
+        // Extract text from DOCX
+        try {
+          const result = await mammoth.extractRawText({ buffer: Buffer.from(uint8Array) });
+          extractedText = result.value;
+        } catch (docxError) {
+          console.error('DOCX parsing error:', docxError);
+          return {
+            success: false,
+            error: 'Failed to extract text from DOCX. The file might be corrupted.'
+          };
+        }
+      }
+    }
+
+    // Convert plain text to HTML
+    try {
+      const htmlContent = await plainTextToHtml(extractedText);
+      if (htmlContent) {
         return {
           success: true,
-          text: result.value
+          text: htmlContent
         };
-      } catch (docxError) {
-        console.error('DOCX parsing error:', docxError);
+      } else {
+        // Fail if HTML conversion returns null
         return {
           success: false,
-          error: 'Failed to extract text from DOCX. The file might be corrupted.'
+          error: 'Failed to convert text to HTML format'
         };
       }
+    } catch (htmlError) {
+      console.error('HTML conversion error:', htmlError);
+      // Fail the upload if HTML conversion fails
+      return {
+        success: false,
+        error: 'Failed to convert text to HTML format. Please try again.'
+      };
     }
   } catch (error) {
     console.error('Error extracting text from file:', error);

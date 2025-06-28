@@ -50,13 +50,6 @@ export default function HamburgerMenu() {
       icon: FiHome,
       path: "/home",
       action: "navigate",
-    },
-    {
-      id: "upload",
-      label: "Upload",
-      icon: FiUpload,
-      path: "/upload",
-      action: "navigate",
     }
   ];
 

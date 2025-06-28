@@ -82,7 +82,7 @@ export async function middleware(req: NextRequest) {
     ];
 
     // Define protected routes that require authentication
-    const protectedRoutes = ['/settings'];
+    const protectedRoutes = ['/settings', '/upload'];
 
     // Define routes that should be blocked for unauthenticated users
     const blockedRoutes = ['/_next'];

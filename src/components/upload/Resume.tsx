@@ -5,9 +5,10 @@ import ResumeUpload from "@/components/upload/resume/ResumeUpload";
 import ResumePreview from "@/components/upload/resume/ResumePreview";
 import ResumeViewModal from "@/components/upload/resume/ResumeViewModal";
 import { useSession } from '@/contexts/SessionContext';
-import { uploadResume, deleteResume, updateResumeExtractedText, extractTextFromResume, extractTextFromFile } from '@/actions/resume';
+import { uploadResume, deleteResume, updateResumeExtractedHtml, extractTextFromResume, extractTextFromFile } from '@/actions/resume';
 import { updateUserResume } from '@/actions/profile';
 import { validateResume } from '@/utils/resumeValidation';
+import { plainTextToHtml } from '@/actions/html';
 import { FiFileText, FiAlertCircle } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
@@ -15,7 +16,7 @@ export default function ResumePage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const { session, userMetadata, setUserMetadata, resumeInfo, setResumeInfo, resumeExtractedText, setResumeExtractedText } = useSession();
+  const { session, userMetadata, setUserMetadata, resumeInfo, setResumeInfo, resumeExtractedHtml, setResumeExtractedHtml } = useSession();
   const [fileName, setFileName] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export default function ResumePage() {
         await deleteResume(userMetadata.resume_url);
         if (session?.user?.id) {
           updateUserResume(session.user.id, "");
-          const updateExtractedText = await updateResumeExtractedText(session.user.id, "", true);
+          const updateExtractedText = await updateResumeExtractedHtml(session.user.id, "", true);
           if (!updateExtractedText.success) {
             setError(updateExtractedText.error || 'Failed to save extracted text. Please try again.');
           }
@@ -56,7 +57,7 @@ export default function ResumePage() {
     setLocalPreviewUrl(null);
     setSelectedResume(null);
     setFileName('');
-    setResumeExtractedText(null);
+    setResumeExtractedHtml(null);
     setExtractionError(null);
   };
 
@@ -67,6 +68,24 @@ export default function ResumePage() {
     setIsUploading(true);
     
     try {
+      // Convert plain text to HTML
+      let htmlContent = text;
+      try {
+        const convertedHtml = await plainTextToHtml(text);
+        if (convertedHtml) {
+          htmlContent = convertedHtml;
+        } else {
+          setError('Failed to convert text to HTML format. Please try again.');
+          setIsUploading(false);
+          return;
+        }
+      } catch (htmlError) {
+        console.error('HTML conversion error:', htmlError);
+        setError('Failed to convert text to HTML format. Please try again.');
+        setIsUploading(false);
+        return;
+      }
+      
       // Create a TXT file from the pasted text
       const timestamp = new Date().toISOString().split('T')[0];
       const fileName = `resume-text-${timestamp}.txt`;
@@ -81,8 +100,8 @@ export default function ResumePage() {
       setSelectedResume(preview);
       setFileName(fileName);
       
-      // Set the extracted text directly (no need to extract from TXT)
-      setResumeExtractedText(text);
+      // Set the extracted text as HTML
+      setResumeExtractedHtml(htmlContent);
       setExtractionError(null);
       
       // Upload to Supabase storage using the same process as PDF/DOCX
@@ -114,7 +133,7 @@ export default function ResumePage() {
               // Don't fail the upload if old resume deletion fails
             }
           }
-          const updateExtractedText = await updateResumeExtractedText(session.user.id, text, true);
+          const updateExtractedText = await updateResumeExtractedHtml(session.user.id, htmlContent, true);
           if (!updateExtractedText.success) {
             setError(updateExtractedText.error || 'Failed to save extracted text. Please try again.');
           }
@@ -133,7 +152,7 @@ export default function ResumePage() {
         setLocalPreviewUrl(resumeInfo?.url || null);
         setSelectedResume(resumeInfo?.url || null);
         setFileName('');
-        setResumeExtractedText(null);
+        setResumeExtractedHtml(null);
       }
     } catch (err) {
       setError('Failed to upload resume. Please try again.');
@@ -141,7 +160,7 @@ export default function ResumePage() {
       setLocalPreviewUrl(resumeInfo?.url || null);
       setSelectedResume(resumeInfo?.url || null);
       setFileName('');
-      setResumeExtractedText(null);
+      setResumeExtractedHtml(null);
     } finally {
       setIsUploading(false);
       router.push("/home");
@@ -171,10 +190,13 @@ export default function ResumePage() {
       // Extract text from file
       const textResult = await extractTextFromFile(file);
       if (textResult.success && textResult.text) {
-        setResumeExtractedText(textResult.text);
+        setResumeExtractedHtml(textResult.text);
         setExtractionError(null);
       } else {
         setExtractionError(textResult.error || 'Failed to extract text from file');
+        setError(textResult.error || 'Failed to extract text from file');
+        setIsUploading(false);
+        return;
       }
 
       // Upload to Supabase storage
@@ -206,7 +228,7 @@ export default function ResumePage() {
               // Don't fail the upload if old resume deletion fails
             }
           }
-          const updateExtractedText = await updateResumeExtractedText(session.user.id, textResult.text || '', true);
+          const updateExtractedText = await updateResumeExtractedHtml(session.user.id, textResult.text || '', true);
           if (!updateExtractedText.success) {
             setError(updateExtractedText.error || 'Failed to save extracted text. Please try again.');
           }
@@ -225,7 +247,7 @@ export default function ResumePage() {
         setLocalPreviewUrl(resumeInfo?.url || null);
         setSelectedResume(resumeInfo?.url || null);
         setFileName('');
-        setResumeExtractedText(null);
+        setResumeExtractedHtml(null);
       }
     } catch (err) {
       setError('Failed to upload resume. Please try again.');
@@ -233,7 +255,7 @@ export default function ResumePage() {
       setLocalPreviewUrl(resumeInfo?.url || null);
       setSelectedResume(resumeInfo?.url || null);
       setFileName('');
-      setResumeExtractedText(null);
+      setResumeExtractedHtml(null);
     } finally {
       setIsUploading(false);
       router.push("/home");
@@ -261,12 +283,12 @@ export default function ResumePage() {
           updatedAt={resumeInfo?.updated_at || null}
           name={userMetadata?.name || ''}
           fileExt={resumeInfo?.fileExt || null}
-          extractedText={resumeExtractedText}
+          extractedText={resumeExtractedHtml}
         />
       </div>
 
       {/* Text Extraction Section */}
-      {(localPreviewUrl || selectedResume) && resumeExtractedText !== null && (
+      {(localPreviewUrl || selectedResume) && resumeExtractedHtml !== null && (
         <div className="mt-8 bg-white dark:bg-neutral-800 rounded-lg p-4 sm:p-6 shadow-sm border border-neutral-100 dark:border-neutral-700 hover:shadow-lg transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h3 className="text-lg font-semibold text-primary-900 dark:text-white flex items-center gap-2">
@@ -284,12 +306,13 @@ export default function ResumePage() {
             </div>
           )}
 
-          {resumeExtractedText && (
+          {resumeExtractedHtml && (
             <div className="space-y-4">              
               <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg p-3 sm:p-4 max-h-64 sm:max-h-96 overflow-y-auto">
-                <pre className="text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap font-mono leading-relaxed">
-                  {resumeExtractedText}
-                </pre>
+                <div 
+                  className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: resumeExtractedHtml }}
+                />
               </div>
             </div>
           )}
