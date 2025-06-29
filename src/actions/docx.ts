@@ -166,22 +166,57 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
     // update saves left
     await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
 
+    const templated_experiences = resumeData.experiences.map((experience: any) => {
+      return {
+        experience: experience.experience && experience.experience !== undefined ? experience.experience : '**Add experience here**',
+        dates: experience.dates && experience.dates !== undefined ? experience.dates : '**Add dates here**',
+        company_or_program: experience.company_or_program && experience.company_or_program !== undefined ? experience.company_or_program : '**Add company here**',
+        location: experience.location && experience.location !== undefined ? experience.location : '**Add location here**',
+        skills: experience.skills && experience.skills !== undefined ? experience.skills : '**Add skills here**',
+        contributions: experience.contributions && experience.contributions !== undefined ? experience.contributions : '**Add contributions here**'
+      }
+    });
+
+    const templated_activities = resumeData.activities.map((activity: any) => {
+      return {
+        activity: activity.activity && activity.activity !== undefined ? activity.activity : '**Add activity here**',
+        role: activity.role && activity.role !== undefined ? activity.role : '**Add role here**',
+        dates: activity.dates && activity.dates !== undefined ? activity.dates : '**Add dates here**',
+        location: activity.location && activity.location !== undefined ? activity.location : '**Add location here**',
+        skills: activity.skills && activity.skills !== undefined ? activity.skills : '**Add skills here**',
+        contributions: activity.contributions && activity.contributions !== undefined ? activity.contributions : '**Add contributions here**'
+      }
+    });
+
+    const templated_skills = resumeData.skills.map((skill: any) => {
+      return {
+        skill: skill.skill && skill.skill !== undefined ? skill.skill : '**Add skill here**',
+        frameworks: skill.frameworks && skill.frameworks !== undefined ? skill.frameworks : '**Add frameworks here**'
+      }
+    });
+
+    const templated_websites = resumeData.websites.map((website: any) => {
+      return {
+        website: website.website && website.website !== undefined ? website.website : '**Add website here**'
+      }
+    });
+
     // Set the template variables
     doc.setData({
       full_name: resumeData.full_name && resumeData.full_name !== undefined ? resumeData.full_name : '**Add full name here**',
       email: resumeData.email && resumeData.email !== undefined ? resumeData.email : '**Add email here**',
       phone: resumeData.phone && resumeData.phone !== undefined ? resumeData.phone : '**Add phone number here**',
       linkedin: resumeData.linkedin && resumeData.linkedin !== undefined ? resumeData.linkedin : '**Add linkedin profile here**',
-      websites: resumeData.websites && resumeData.websites !== undefined ? resumeData.websites : '**Add personal websites here**',
+      websites: templated_websites,
       university_college: resumeData.university_college && resumeData.university_college !== undefined ? resumeData.university_college : '**Add university and college here**',
       university_location: resumeData.university_location && resumeData.university_location !== undefined ? resumeData.university_location : '**Add university location here**',
       degree: resumeData.degree && resumeData.degree !== undefined ? resumeData.degree : '**Add degree here**',
       graduation: resumeData.expected_graduation && resumeData.expected_graduation !== undefined ? resumeData.expected_graduation : '**Add graduation month and year here**',
       gpa: resumeData.gpa && resumeData.gpa !== undefined ? resumeData.gpa : '**Add GPA here**',
       relevant_courses: resumeData.relevant_courses && resumeData.relevant_courses !== undefined ? resumeData.relevant_courses : '**Add relevant courses here**',
-      skills: resumeData.skills && resumeData.skills !== undefined ? resumeData.skills : '**Add skills here**',
-      experiences: resumeData.experiences && resumeData.experiences !== undefined ? resumeData.experiences : '**Add experiences here**',
-      activities: resumeData.activities && resumeData.activities !== undefined ? resumeData.activities : '**Add activities here**',
+      skills: templated_skills,
+      experiences: templated_experiences,
+      activities: templated_activities,
       languages: resumeData.languages && resumeData.languages !== undefined ? resumeData.languages : '**Add languages here**',
       interests: resumeData.interests && resumeData.interests !== undefined ? resumeData.interests : '**Add interests here**',
       achievements: resumeData.achievements && resumeData.achievements !== undefined ? resumeData.achievements : '**Add achievements here**'
