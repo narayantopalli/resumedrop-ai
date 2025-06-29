@@ -28,7 +28,7 @@ const formatEdits = (text: string): { original: string; suggested: string; }[] =
   const editsSection = editsMatch[1];
   
   // Clean up the edits section - remove extra braces and normalize
-  let cleanedSection = editsSection
+  const cleanedSection = editsSection
     .replace(/^\s*\{\s*/, '') // Remove leading { and whitespace
     .replace(/\s*\}\s*$/, '') // Remove trailing } and whitespace
     .trim();
