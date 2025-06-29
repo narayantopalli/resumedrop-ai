@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
             </div>
             <p className="text-neutral-600 dark:text-neutral-300 flex items-center gap-2">
               <span className="w-2 h-2 bg-accent-400 rounded-full"></span>
-              Last updated: 6/24/2025
+              Last updated: June 29, 2025
             </p>
           </div>
 
@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
                 1. Introduction
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                ResumeDrop AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our resume networking platform.
+                ResumeDrop AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered networking platform that matches users based on their skills, experience, and interests extracted from their resumes.
               </p>
             </section>
 
@@ -43,11 +43,12 @@ export default function PrivacyPolicy() {
                 We collect information you provide directly to us, including:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
-                <li>Name and email address during registration</li>
-                <li>Profile information and preferences</li>
-                <li>Resume content and documents you upload</li>
-                <li>Profile pictures and other images</li>
-                <li>Communication preferences and settings</li>
+                <li>Name, email address, and college/university affiliation during registration</li>
+                <li>Profile information including contact details (phone, LinkedIn, GitHub, etc.)</li>
+                <li>Resume content and documents you upload (PDF, DOCX, TXT formats up to 5MB)</li>
+                <li>Profile pictures and avatar images</li>
+                <li>Privacy settings and networking preferences</li>
+                <li>Communication preferences and notification settings</li>
               </ul>
 
               <h3 className="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3 flex items-center gap-2">
@@ -59,9 +60,10 @@ export default function PrivacyPolicy() {
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li>Device information (IP address, browser type, operating system)</li>
-                <li>Usage data (pages visited, features used, time spent)</li>
+                <li>Usage data (pages visited, features used, time spent, matching interactions)</li>
                 <li>Log data (access times, error logs, performance data)</li>
-                <li>Cookies and similar tracking technologies</li>
+                <li>Cookies and similar tracking technologies for session management</li>
+                <li>Real-time connection data for networking features</li>
               </ul>
             </section>
 
@@ -74,10 +76,12 @@ export default function PrivacyPolicy() {
                 We use the information we collect to:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
-                <li>Provide and maintain the Service</li>
-                <li>Process and analyze your resume using AI technology</li>
-                <li>Match you with other users based on skills and experience</li>
-                <li>Send you notifications and updates about the Service</li>
+                <li>Provide and maintain the AI-powered networking Service</li>
+                <li>Process and analyze your resume using third-party LLMs and other AI technologies</li>
+                <li>Create searchable embeddings for intelligent user matching</li>
+                <li>Match you with other users based on skills, experience, and college affiliation</li>
+                <li>Generate personalized networking recommendations with AI-written reasoning</li>
+                <li>Send real-time notifications about new matches and connections</li>
                 <li>Improve our AI algorithms and matching capabilities</li>
                 <li>Ensure the security and integrity of the Service</li>
                 <li>Comply with legal obligations</li>
@@ -90,16 +94,19 @@ export default function PrivacyPolicy() {
                 4. AI Processing and Data Analysis
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Our AI technology processes your resume to:
+                Our AI technology, including third-party LLMs, processes your resume to:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li>Extract skills, experience, education, and other relevant information</li>
-                <li>Create a searchable profile for matching purposes</li>
+                <li>Convert resume content into searchable text and embeddings</li>
+                <li>Create a comprehensive profile summary for matching purposes</li>
                 <li>Identify patterns and similarities with other users</li>
-                <li>Generate personalized networking recommendations</li>
+                <li>Generate personalized networking recommendations with specific connection reasons</li>
+                <li>Enable college-specific networking within your institution</li>
+                <li>Provide real-time matching updates and notifications</li>
               </ul>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                This processing is essential to provide the core functionality of our Service. We do not use your data for purposes other than providing and improving the Service.
+                This AI processing is essential to provide the core functionality of our Service. We do not use your data for purposes other than providing and improving the Service. Your resume content is processed securely and used only for matching and networking purposes.
               </p>
             </section>
 
@@ -114,23 +121,40 @@ export default function PrivacyPolicy() {
               
               <h3 className="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3 flex items-center gap-2">
                 <span className="w-1 h-1 bg-accent-400 rounded-full"></span>
-                5.1 With Other Users
+                5.1 With Other Users (Networking Features)
               </h3>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Your profile information (excluding personal contact details) may be visible to other users based on matching criteria. You control what information is shared through your privacy settings.
+                When your profile is public, your information may be visible to other users based on AI-generated matching criteria:
+              </p>
+              <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
+                <li>Profile information (name, college, skills, experience summary)</li>
+                <li>Contact information (email, phone, LinkedIn, GitHub, etc.) as you choose to share</li>
+                <li>AI-generated connection suggestions and reasoning</li>
+                <li>Similarity scores and matching criteria</li>
+              </ul>
+              <p className="text-neutral-700 dark:text-neutral-300 mb-4">
+                You control what information is shared through your privacy settings. Private profiles cannot participate in networking features.
               </p>
 
               <h3 className="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3 flex items-center gap-2">
                 <span className="w-1 h-1 bg-accent-400 rounded-full"></span>
-                5.2 Service Providers
+                5.2 AI Service Providers
               </h3>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                We may share information with trusted third-party service providers who assist us in operating the Service, such as cloud storage providers and analytics services.
+                We share resume content with third-party LLMs for AI processing and analysis. Third-party LLMs processes your data according to their privacy policy and data handling practices.
               </p>
 
               <h3 className="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3 flex items-center gap-2">
                 <span className="w-1 h-1 bg-accent-400 rounded-full"></span>
-                5.3 Legal Requirements
+                5.3 Service Providers
+              </h3>
+              <p className="text-neutral-700 dark:text-neutral-300 mb-4">
+                We may share information with trusted third-party service providers who assist us in operating the Service, such as cloud storage providers (Supabase), authentication services, and analytics services.
+              </p>
+
+              <h3 className="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3 flex items-center gap-2">
+                <span className="w-1 h-1 bg-accent-400 rounded-full"></span>
+                5.4 Legal Requirements
               </h3>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
                 We may disclose your information if required by law or in response to valid legal requests.
@@ -143,7 +167,17 @@ export default function PrivacyPolicy() {
                 6. Data Security
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                We implement appropriate technical and organizational measures to protect your information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.
+                We implement appropriate technical and organizational measures to protect your information:
+              </p>
+              <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
+                <li>Secure authentication through Supabase Auth</li>
+                <li>Encrypted storage and secure file handling</li>
+                <li>Secure transmission of data to AI service providers</li>
+                <li>Regular security audits and updates</li>
+                <li>Access controls and user authentication</li>
+              </ul>
+              <p className="text-neutral-700 dark:text-neutral-300 mb-4">
+                However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.
               </p>
             </section>
 
@@ -153,7 +187,16 @@ export default function PrivacyPolicy() {
                 7. Data Retention
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                We retain your information for as long as your account is active or as needed to provide the Service. You may request deletion of your account and associated data at any time.
+                We retain your information for as long as your account is active or as needed to provide the Service. This includes:
+              </p>
+              <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
+                <li>Resume files and extracted text for matching purposes</li>
+                <li>Profile information and networking data</li>
+                <li>AI-generated embeddings and matching data</li>
+                <li>Usage data for service improvement</li>
+              </ul>
+              <p className="text-neutral-700 dark:text-neutral-300 mb-4">
+                You may request deletion of your account and associated data at any time. Upon deletion, we will remove your data from our systems and request deletion from AI service providers where applicable.
               </p>
             </section>
 
@@ -167,11 +210,13 @@ export default function PrivacyPolicy() {
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li><strong>Access:</strong> Request a copy of the personal information we hold about you</li>
-                <li><strong>Correction:</strong> Update or correct your personal information</li>
+                <li><strong>Correction:</strong> Update or correct your personal information and resume content</li>
                 <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
                 <li><strong>Portability:</strong> Request a copy of your data in a portable format</li>
-                <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
-                <li><strong>Privacy Settings:</strong> Control what information is shared with other users</li>
+                <li><strong>Opt-out:</strong> Unsubscribe from notifications and communications</li>
+                <li><strong>Privacy Settings:</strong> Control profile visibility and networking participation</li>
+                <li><strong>Resume Management:</strong> Update, replace, or remove your uploaded resume</li>
+                <li><strong>Contact Information:</strong> Control which contact details are shared with other users</li>
               </ul>
             </section>
 
@@ -181,7 +226,7 @@ export default function PrivacyPolicy() {
                 9. Cookies and Tracking Technologies
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                We use cookies and similar technologies to enhance your experience, analyze usage, and provide personalized content. You can control cookie settings through your browser preferences.
+                We use cookies and similar technologies to enhance your experience, analyze usage, provide personalized content, and maintain session state. You can control cookie settings through your browser preferences.
               </p>
             </section>
 
@@ -191,7 +236,15 @@ export default function PrivacyPolicy() {
                 10. Third-Party Services
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Our Service may contain links to third-party websites or services. We are not responsible for the privacy practices of these third parties. We encourage you to review their privacy policies.
+                Our Service integrates with third-party services:
+              </p>
+              <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
+                <li><strong>Third-party LLMs:</strong> For AI processing and analysis of resume content</li>
+                <li><strong>Supabase:</strong> For authentication, database, and file storage</li>
+                <li><strong>Google OAuth:</strong> For authentication (optional)</li>
+              </ul>
+              <p className="text-neutral-700 dark:text-neutral-300 mb-4">
+                We are not responsible for the privacy practices of these third parties. We encourage you to review their privacy policies.
               </p>
             </section>
 
@@ -201,7 +254,7 @@ export default function PrivacyPolicy() {
                 11. Children's Privacy
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you believe we have collected such information, please contact us.
+                Our Service is intended for college students. We do not knowingly collect personal information from children under 13 years of age. If you believe we have collected such information, please contact us.
               </p>
             </section>
 
@@ -211,7 +264,7 @@ export default function PrivacyPolicy() {
                 12. International Data Transfers
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy.
+                Your information may be transferred to and processed in countries other than your own, including for AI processing by third-party LLMs. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy and applicable data protection laws.
               </p>
             </section>
 
@@ -221,7 +274,7 @@ export default function PrivacyPolicy() {
                 13. Changes to This Privacy Policy
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date.
+                We may update this Privacy Policy from time to time to reflect changes in our practices or applicable laws. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date.
               </p>
             </section>
 
