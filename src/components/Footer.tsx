@@ -16,7 +16,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://www.instagram.com/resumedrop.ai/"
                 className="text-neutral-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
                 aria-label="Instagram"
               >
