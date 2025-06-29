@@ -166,23 +166,23 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
 
     // Set the template variables
     doc.setData({
-      full_name: resumeData.full_name || '**Add full name here**',
-      email: resumeData.email || '**Add email here**',
-      phone: resumeData.phone || '**Add phone number here**',
-      linkedin: resumeData.linkedin || '**Add linkedin profile here**',
-      websites: resumeData.websites || '**Add personal websites here**',
-      university_college: resumeData.university_college || '**Add university and college here**',
-      university_location: resumeData.university_location || '**Add university location here**',
-      degree: resumeData.degree || '**Add degree here**',
-      graduation: resumeData.expected_graduation || '**Add graduation month and year here**',
-      gpa: resumeData.gpa || '**Add GPA here**',
-      relevant_courses: resumeData.relevant_courses || '**Add relevant courses here**',
-      skills: resumeData.skills || '**Add skills here**',
-      experiences: resumeData.experiences || '**Add experiences here**',
-      activities: resumeData.activities || '**Add activities here**',
-      languages: resumeData.languages || '**Add languages here**',
-      interests: resumeData.interests || '**Add interests here**',
-      achievements: resumeData.achievements || '**Add achievements here**'
+      full_name: resumeData.full_name && resumeData.full_name !== undefined ? resumeData.full_name : '**Add full name here**',
+      email: resumeData.email && resumeData.email !== undefined ? resumeData.email : '**Add email here**',
+      phone: resumeData.phone && resumeData.phone !== undefined ? resumeData.phone : '**Add phone number here**',
+      linkedin: resumeData.linkedin && resumeData.linkedin !== undefined ? resumeData.linkedin : '**Add linkedin profile here**',
+      websites: resumeData.websites && resumeData.websites !== undefined ? resumeData.websites : '**Add personal websites here**',
+      university_college: resumeData.university_college && resumeData.university_college !== undefined ? resumeData.university_college : '**Add university and college here**',
+      university_location: resumeData.university_location && resumeData.university_location !== undefined ? resumeData.university_location : '**Add university location here**',
+      degree: resumeData.degree && resumeData.degree !== undefined ? resumeData.degree : '**Add degree here**',
+      graduation: resumeData.expected_graduation && resumeData.expected_graduation !== undefined ? resumeData.expected_graduation : '**Add graduation month and year here**',
+      gpa: resumeData.gpa && resumeData.gpa !== undefined ? resumeData.gpa : '**Add GPA here**',
+      relevant_courses: resumeData.relevant_courses && resumeData.relevant_courses !== undefined ? resumeData.relevant_courses : '**Add relevant courses here**',
+      skills: resumeData.skills && resumeData.skills !== undefined ? resumeData.skills : '**Add skills here**',
+      experiences: resumeData.experiences && resumeData.experiences !== undefined ? resumeData.experiences : '**Add experiences here**',
+      activities: resumeData.activities && resumeData.activities !== undefined ? resumeData.activities : '**Add activities here**',
+      languages: resumeData.languages && resumeData.languages !== undefined ? resumeData.languages : '**Add languages here**',
+      interests: resumeData.interests && resumeData.interests !== undefined ? resumeData.interests : '**Add interests here**',
+      achievements: resumeData.achievements && resumeData.achievements !== undefined ? resumeData.achievements : '**Add achievements here**'
     });
 
     // Render the document
