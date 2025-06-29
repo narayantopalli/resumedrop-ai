@@ -27,14 +27,39 @@ const formatEdits = (text: string): { original: string; suggested: string; }[] =
   
   const editsSection = editsMatch[1];
   
-  // Parse JSON objects in the edits section
-  const jsonMatches = editsSection.match(/\{[^}]+\}/g);
+  // Clean up the edits section - remove extra braces and normalize
+  let cleanedSection = editsSection
+    .replace(/^\s*\{\s*/, '') // Remove leading { and whitespace
+    .replace(/\s*\}\s*$/, '') // Remove trailing } and whitespace
+    .trim();
+  
+  // Try to parse as a single JSON array first
+  try {
+    const parsedEdits = JSON.parse(`[${cleanedSection}]`);
+    if (Array.isArray(parsedEdits)) {
+      for (const edit of parsedEdits) {
+        if (edit && typeof edit === 'object' && edit.original && edit.suggested) {
+          edits.push({
+            original: edit.original,
+            suggested: edit.suggested
+          });
+        }
+      }
+      return edits;
+    }
+  } catch (error) {
+    // If single JSON array parsing fails, try individual objects
+  }
+  
+  // Fallback: Parse individual JSON objects
+  // Use a more robust regex that handles nested braces
+  const jsonMatches = cleanedSection.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
   
   if (jsonMatches) {
     for (const jsonMatch of jsonMatches) {
       try {
         const edit = JSON.parse(jsonMatch);
-        if (edit.original && edit.suggested) {
+        if (edit && typeof edit === 'object' && edit.original && edit.suggested) {
           edits.push({
             original: edit.original,
             suggested: edit.suggested
@@ -42,6 +67,15 @@ const formatEdits = (text: string): { original: string; suggested: string; }[] =
         }
       } catch (error) {
         console.warn('Failed to parse edit JSON:', jsonMatch);
+        // Try to extract original and suggested manually as last resort
+        const originalMatch = jsonMatch.match(/"original":\s*"([^"]+)"/);
+        const suggestedMatch = jsonMatch.match(/"suggested":\s*"([^"]+)"/);
+        if (originalMatch && suggestedMatch) {
+          edits.push({
+            original: originalMatch[1],
+            suggested: suggestedMatch[1]
+          });
+        }
       }
     }
   }
@@ -115,6 +149,35 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
         const message_history_length = pastMessages.length;
         const past_messages = message_history_length > PROMPT_CHARS_LEFT ? pastMessages.substring(message_history_length - PROMPT_CHARS_LEFT) : pastMessages;
 
+        const { data: resumeSummary, error: resumeSummaryError } = await supabase.from('resume_embeddings').select('summary').eq('id', userId).single();
+        if (resumeSummaryError) {
+            console.error('Error getting resume summary:', resumeSummaryError);
+            throw new Error('Failed to get resume summary');
+        }
+
+        const messageEmbedding = await openai.embeddings.create({
+          model: "text-embedding-3-small",
+          input: resumeSummary.summary + " " + message,
+        });
+
+        // get examples from the database
+        const { data: examples, error: examplesError } = await supabase.rpc('get_excerpts', {
+            query_embedding: messageEmbedding.data[0].embedding,
+            neighbors: 10
+        });
+        if (examplesError) {
+            console.error('Error getting examples:', examplesError);
+            throw new Error('Failed to get examples');
+        }
+        const examples_text = examples.map((example: any) => example.content).join("\n");
+
+        const examples_text_context = `
+            This is a list of other resume excerpts that should be used as context to improve the user's resume:
+            --------------------------------
+            ${examples_text}
+            --------------------------------
+        `;
+
         let summary_text = 'No Previous Conversation History';
         if (past_messages.length > 10) {
           const summary = await openai.chat.completions.create({
@@ -144,19 +207,23 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             - Structure your response with clear sections and proper formatting
 
             For every analysis you must give in-text edits of how the user can improve.
-            Suggest in-text edits in the following way:
-            - Suggest 3-5 in-text edits to the user's resume
-            - These edits should be under the keyword @@edits@@ in the following json format:
-            {    
-              { "original": "The original text", "suggested": "The suggested edit" },
-              { "original": "The original text", "suggested": "The suggested edit" },
-              ...
-            }
+
+            Your response should be in the following format:
+
+            ...
+            ...
+            ...
+
+            @@edits@@
+            { "original": "The original text", "suggested": "The suggested edit" },
+            { "original": "The original text", "suggested": "The suggested edit" },
+            { "original": "The original text", "suggested": "The suggested edit" }
 
             Be concise.
+            Important: Do not add any information (numbers, quantities, experiences, examples, etc.) that is not strictly in the user's resume.
         `;
         const context = `
-            This is the extracted text from the user's docx resume:
+            This is the extracted html of the user's resume:
             --------------------------------
             ${resumeText}
             --------------------------------
@@ -167,7 +234,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             ${summary_text}
             --------------------------------
         `;
-        const fullResponse = await response(instructions, context, past_messages_context, message);
+        const fullResponse = await response(instructions, context, examples_text_context, past_messages_context, message);
         
         // Remove edits section from raw response
         const rawResponse = fullResponse.split('@@edits@@')[0].trim();
@@ -185,7 +252,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
     }
 }
 
-export const response = async (instructions: string, context: string, past_prompt_context: string, prompt: string): Promise<string> => {
+export const response = async (instructions: string, context: string, examples: string, past_prompt_context: string, prompt: string): Promise<string> => {
   try {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OpenAI API key is not configured');
@@ -196,7 +263,7 @@ export const response = async (instructions: string, context: string, past_promp
       messages: [
         {
           role: "system",
-          content: instructions,
+          content: examples,
         },
         {
           role: "system",
@@ -205,6 +272,10 @@ export const response = async (instructions: string, context: string, past_promp
         {
           role: "system",
           content: past_prompt_context,
+        },
+        {
+          role: "system",
+          content: instructions,
         },
         {
           role: "user",

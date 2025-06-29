@@ -569,7 +569,7 @@ export default function ResumePreview({
               <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <FiDatabase className="w-3 h-3" />
                 <span className="font-medium">
-                  {userMetadata?.saves_left || 0} saves left today
+                  {userMetadata?.saves_left || 0} save{userMetadata?.saves_left === 1 ? '' : 's'} left today
                 </span>
               </div>
             </div>
