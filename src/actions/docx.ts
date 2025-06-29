@@ -40,6 +40,7 @@ async function parseResumeText(resumeText: string): Promise<any> {
                             "dates": // the dates of the experience ie. May 2024 - June 2025,
                             "company_or_program": // the company or program they worked for,
                             "location": // the location of the experience, ie. either state and city or remote,
+                            "skills": [{"skill": // the skill they used in the activity}, ...] // this needs to be a list of dictionaries, can be a maximum of 5 skills,
                             "contributions": [{"contribution": // the contribution they made to the company or program}, ...] // this needs to be a list of dictionaries
                         }
                     ],
@@ -49,6 +50,7 @@ async function parseResumeText(resumeText: string): Promise<any> {
                             "role": // the role they had in the activity, ie. Team Lead,
                             "dates": // the dates of the activity ie. May 2024 - June 2025,
                             "location": // the location of the activity, ie. either state and city or remote,
+                            "skills": [{"skill": // the skill they used in the activity}, ...] // this needs to be a list of dictionaries, can be a maximum of 5 skills,
                             "contributions": [{"contribution": // the contribution they made to the activity}, ...] // this needs to be a list of dictionaries
                         }
                     ],
