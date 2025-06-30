@@ -308,9 +308,9 @@ export default function ResumePage() {
 
           {resumeExtractedHtml && (
             <div className="space-y-4">              
-              <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg p-3 sm:p-4 max-h-64 sm:max-h-96 overflow-y-auto">
+              <div className="bg-neutral-50 rounded-lg p-3 sm:p-4 max-h-64 sm:max-h-96 overflow-y-auto">
                 <div 
-                  className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed"
+                  className="text-sm text-neutral-800 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: resumeExtractedHtml }}
                 />
               </div>

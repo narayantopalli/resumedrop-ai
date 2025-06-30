@@ -35,17 +35,17 @@ export default function ResumeViewModal({ resumeUrl, onClose, fileName, name, up
         <div className="flex-1 min-h-0 p-6">
           <div className="w-full h-full border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
             {isDocx ? (
-              <div className="w-full h-full bg-white dark:bg-neutral-900 p-6 overflow-y-auto">
+              <div className="w-full h-full bg-white p-6 overflow-y-auto">
                 {extractedText ? (
                   <div className="prose prose-sm max-w-none dark:prose-invert">
                     <div 
-                      className="font-sans text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed"
+                      className="font-sans text-sm text-neutral-800 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: extractedText }}
                     />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-center text-neutral-600 dark:text-neutral-400">
+                    <div className="text-center text-neutral-600">
                       <FiFileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                       <p className="text-sm">No text content available</p>
                     </div>

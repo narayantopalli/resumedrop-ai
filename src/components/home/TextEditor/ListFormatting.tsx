@@ -10,14 +10,14 @@ export default function ListFormatting({ onUnorderedList, onOrderedList }: ListF
     <div className="flex items-center gap-1 flex-shrink-0">
       <button
         onClick={onUnorderedList}
-        className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+        className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors text-gray-700 dark:text-gray-200"
         title="Bullet List"
       >
         <FiList className="w-4 h-4" />
       </button>
       <button
         onClick={onOrderedList}
-        className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+        className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors text-gray-700 dark:text-gray-200"
         title="Numbered List"
       >
         <FiList className="w-4 h-4" />

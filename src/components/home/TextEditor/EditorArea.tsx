@@ -60,7 +60,7 @@ export default function EditorArea({
           }
         }}
         className={`
-          text-editor w-full h-full p-3 sm:p-4 text-gray-800 dark:text-gray-200 
+          text-editor w-full h-full p-3 sm:p-4 text-gray-800
           focus:outline-none focus:ring-0 overflow-y-auto
           ${readOnly ? 'cursor-default' : 'cursor-text'}
           ${isFullscreen ? 'pb-8' : ''}
@@ -74,7 +74,7 @@ export default function EditorArea({
       />
       
       {!value && !readOnly && (
-        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 text-gray-400 dark:text-gray-500 pointer-events-none select-none text-sm">
+        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 text-gray-400 pointer-events-none select-none text-sm">
           {placeholder}
         </div>
       )}

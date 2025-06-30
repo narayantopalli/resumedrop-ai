@@ -136,7 +136,7 @@ export default function TextEditor({
   const currentFormat = getCurrentFormat();
 
   return (
-    <div className={`bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden flex flex-col ${isFullscreen ? 'fixed inset-0 z-[9999] bg-white dark:bg-gray-800' : 'h-full'} ${className}`}>
+    <div className={`bg-white border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden flex flex-col shadow-sm dark:shadow-gray-900/20 ${isFullscreen ? 'fixed inset-0 z-[9999] bg-white dark:bg-gray-800' : 'h-full'} ${className}`}>
       {toolbarVisible ? (
         <Toolbar
           currentFormat={currentFormat}

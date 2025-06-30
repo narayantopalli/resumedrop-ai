@@ -34,7 +34,7 @@ export default function FormatDropdown({
     <div ref={containerRef} className="relative flex-shrink-0 format-dropdown" data-format-dropdown style={{ position: 'relative' }}>
       <button
         onClick={onToggle}
-        className="flex items-center gap-1 px-2 py-1.5 text-xs bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors whitespace-nowrap"
+        className="flex items-center gap-1 px-2 py-1.5 text-xs bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors whitespace-nowrap text-gray-700 dark:text-gray-200"
         title="Text Format"
       >
         <span className="hidden sm:inline">{currentFormatLabel}</span>
