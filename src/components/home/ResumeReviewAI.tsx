@@ -37,7 +37,7 @@ const templatePrompts = [
   {
     id: 'career',
     title: 'Give me career advice',
-    prompt: 'What are some experiences that people similar to me are taking? Quote specific examples and give advice.'
+    prompt: 'What are some experiences that professionals in my field did? Quote specific examples and give me advice based on my resume.'
   },
   {
     id: 'edits',
@@ -59,6 +59,18 @@ const templatePrompts = [
     title: 'ATS optimization',
     prompt: 'How can I optimize my resume to pass through Applicant Tracking Systems (ATS)?'
   }
+];
+
+// Cycling placeholders for AI thinking state
+const thinkingPlaceholders = [
+  "Analyzing your resume... 📊",
+  "Checking for improvements... 🔍",
+  "Generating suggestions... 💡",
+  "Reviewing content... 📝",
+  "Optimizing for ATS... 🤖",
+  "Finding keywords... 🔑",
+  "Crafting feedback... ✨",
+  "Evaluating structure... 📋"
 ];
 
 // Component to display suggested edits in a diff-like format
@@ -142,6 +154,8 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -163,6 +177,19 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       saveChatsToDatabase(userMetadata.id, messages);
     }
   }, [messages, userMetadata?.id]);
+
+  // Cycling placeholder effect
+  useEffect(() => {
+    if (isAnalyzing) {
+      const interval = setInterval(() => {
+        setCurrentPlaceholderIndex((prev) => (prev + 1) % thinkingPlaceholders.length);
+      }, 2000); // Change placeholder every 2 seconds
+
+      return () => clearInterval(interval);
+    } else {
+      setCurrentPlaceholderIndex(0);
+    }
+  }, [isAnalyzing]);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -215,29 +242,9 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
     };
     setInputText('');
     setIsAnalyzing(true);
+    setError(null);
 
-    const message_history = messages?.map(message => `${message.type === 'user' ? 'Them: ' : 'You: '}${message.rawContent}`).join('\n') || '';
-    setMessages(prev => [...(prev || []), userMessage]);
-
-    const {rawResponse, formattedResponse, edits} = await getChatResponse(resumeText, message_history, inputText, userMetadata.id);
-
-    const validEdits = edits.filter(edit => resumeText.includes(edit.original));
-
-    const aiMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      type: 'ai',
-      HTMLContent: formattedResponse,
-      rawContent: rawResponse,
-      edits: validEdits
-    };
-
-    setUserMetadata((prev: any) => ({
-      ...prev,
-      responses_left: prev.responses_left - 1
-    }));
-
-    setMessages(prev => [...(prev || []), aiMessage]);
-    setIsAnalyzing(false);
+    sendMessageToAI(inputText, userMessage);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -257,30 +264,46 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       rawContent: prompt
     };
     setIsAnalyzing(true);
+    setError(null);
+
+    sendMessageToAI(prompt, userMessage);
+  };
+
+  const sendMessageToAI = async (prompt: string, userMessage: ChatMessage) => {
+    if (!resumeText) return;
 
     const message_history = messages?.map(message => `${message.type === 'user' ? 'Them: ' : 'You: '}${message.rawContent}`).join('\n') || '';
     setMessages(prev => [...(prev || []), userMessage]);
 
-    const {rawResponse, formattedResponse, edits} = await getChatResponse(resumeText, message_history, prompt, userMetadata.id);
+    try {
+      const {rawResponse, formattedResponse, edits} = await getChatResponse(resumeText, message_history, prompt, userMetadata.id);
 
-    const validEdits = edits.filter(edit => resumeText.includes(edit.original));
+      const validEdits = edits.filter(edit => resumeText.includes(edit.original));
 
-    const aiMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      type: 'ai',
-      HTMLContent: formattedResponse,
-      rawContent: rawResponse,
-      edits: validEdits
-    };
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        HTMLContent: formattedResponse,
+        rawContent: rawResponse,
+        edits: validEdits
+      };
 
-    setUserMetadata((prev: any) => ({
-      ...prev,
-      responses_left: prev.responses_left - 1
-    }));
+      setUserMetadata((prev: any) => ({
+        ...prev,
+        responses_left: prev.responses_left - 1
+      }));
 
-    setMessages(prev => [...(prev || []), aiMessage]);
-    setIsAnalyzing(false);
-  };
+      setMessages(prev => [...(prev || []), aiMessage]);
+    } catch (err) {
+      console.error('Error getting chat response:', err);
+      setError('Sorry, I encountered an error while processing your request. Please try again.');
+      
+      // Remove the user message since the AI response failed
+      setMessages(prev => prev ? prev.slice(0, -1) : []);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }
 
   const handleDeleteChats = async () => {
     if (!userMetadata) return;
@@ -414,13 +437,29 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
           </div>
         ))}
 
+        {/* Error Message */}
+        {error && (
+          <div className="flex justify-start">
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-3 xl:px-6 xl:py-4 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="flex items-center gap-2 xl:gap-3">
+                <svg className="w-5 h-5 xl:w-6 xl:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span className="text-sm xl:text-base font-medium" style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive' }}>
+                  {error}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isAnalyzing && (
           <div className="flex justify-start">
             <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-3 xl:px-6 xl:py-4 rounded-lg">
               <div className="flex items-center gap-2 xl:gap-3">
                 <div className="animate-spin rounded-full h-4 w-4 xl:h-5 xl:w-5 border-b-2 border-blue-500"></div>
                 <span className="text-sm xl:text-base font-medium" style={{ fontFamily: '"Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive' }}>
-                  AI is thinking... 🤔
+                  {thinkingPlaceholders[currentPlaceholderIndex]}
                 </span>
               </div>
             </div>

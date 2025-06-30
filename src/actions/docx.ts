@@ -14,117 +14,258 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Define the docx generation tool
+const docxGenerationTool = {
+  type: "function" as const,
+  function: {
+    name: "parse_resume_to_json",
+    description: "Parse resume text and extract structured data for DOCX generation",
+    parameters: {
+      type: "object",
+      properties: {
+        full_name: {
+          type: "string",
+          description: "The person's full name"
+        },
+        email: {
+          type: "string",
+          description: "Email address"
+        },
+        phone: {
+          type: "string",
+          description: "Phone number or alternative contact"
+        },
+        linkedin: {
+          type: "string",
+          description: "LinkedIn profile URL"
+        },
+        websites: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              website: {
+                type: "string",
+                description: "Personal website, GitHub, or other online presence"
+              }
+            },
+            required: ["website"]
+          }
+        },
+        university_college: {
+          type: "string",
+          description: "University and college name"
+        },
+        university_location: {
+          type: "string",
+          description: "University location (city and state)"
+        },
+        degree: {
+          type: "string",
+          description: "Degree type (e.g., Bachelor of Science in Computer Science)"
+        },
+        expected_graduation: {
+          type: "string",
+          description: "Expected graduation month and year (e.g., May 2025)"
+        },
+        gpa: {
+          type: "string",
+          description: "GPA if listed, otherwise null"
+        },
+        relevant_courses: {
+          type: "string",
+          description: "Relevant courses as comma-separated list"
+        },
+        skills: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              skill: {
+                type: "string",
+                description: "Skill name (e.g., software development)"
+              },
+              frameworks: {
+                type: "string",
+                description: "Comma-separated list of frameworks used for this skill"
+              }
+            },
+            required: ["skill", "frameworks"]
+          }
+        },
+        experiences: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              experience: {
+                type: "string",
+                description: "Job title or role"
+              },
+              dates: {
+                type: "string",
+                description: "Employment dates (e.g., May 2024 - June 2025)"
+              },
+              company_or_program: {
+                type: "string",
+                description: "Company name or program name"
+              },
+              location: {
+                type: "string",
+                description: "Location (city, state or remote)"
+              },
+              skills: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    skill: {
+                      type: "string",
+                      description: "Skill used in this role"
+                    }
+                  },
+                  required: ["skill"]
+                },
+                maxItems: 5
+              },
+              contributions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    contribution: {
+                      type: "string",
+                      description: "Contribution made to the company or program"
+                    }
+                  },
+                  required: ["contribution"]
+                }
+              }
+            },
+            required: ["experience", "dates", "company_or_program", "location", "skills", "contributions"]
+          }
+        },
+        activities: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              activity: {
+                type: "string",
+                description: "Activity name (e.g., hackathon, club)"
+              },
+              role: {
+                type: "string",
+                description: "Role in the activity (e.g., Team Lead)"
+              },
+              dates: {
+                type: "string",
+                description: "Activity dates (e.g., May 2024 - June 2025)"
+              },
+              location: {
+                type: "string",
+                description: "Location (city, state or remote)"
+              },
+              skills: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    skill: {
+                      type: "string",
+                      description: "Skill used in this activity"
+                    }
+                  },
+                  required: ["skill"]
+                },
+                maxItems: 5
+              },
+              contributions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    contribution: {
+                      type: "string",
+                      description: "Contribution made to the activity"
+                    }
+                  },
+                  required: ["contribution"]
+                }
+              }
+            },
+            required: ["activity", "role", "dates", "location", "skills", "contributions"]
+          }
+        },
+        languages: {
+          type: "string",
+          description: "Comma-separated list of languages they are proficient in"
+        },
+        interests: {
+          type: "string",
+          description: "Comma-separated list of interests"
+        },
+        achievements: {
+          type: "string",
+          description: "Comma-separated list of awards and achievements (e.g., Dean's List)"
+        }
+      },
+      required: ["full_name", "email", "phone", "linkedin", "websites", "university_college", "university_location", "degree", "expected_graduation", "gpa", "relevant_courses", "skills", "experiences", "activities", "languages", "interests", "achievements"]
+    }
+  }
+};
+
 async function parseResumeText(resumeText: string): Promise<any> {
     const response = await openai.chat.completions.create({
-        model: "gpt-4.1",
+        model: "gpt-4o-mini",
         messages: [
             { role: "system", content: `
-                You are a helpful assistant that parses resume text and returns a JSON object:
-                Output a JSON object with the exact following structure:
-                {
-                    "full_name": // their full name,
-                    "email": // their email,
-                    "phone": // their phone number, if they don't have a phone number, could be another social media contact,
-                    "linkedin": // their linkedin profile,
-                    "websites": [{"website": // could be their personal website, github, etc.}, ...]
-                    "university_college": // their university and the college within,
-                    "university_location": // their university location, state and city,
-                    "degree": // their degree, ie. Bachelor of Science in Computer Science,
-                    "expected_graduation": // their expected graduation month and year, ie. May 2025,
-                    "gpa": // their gpa if listed otherwise None,
-                    "relevant_courses": // relevant courses they have taken as a comma separated list,
-                    "skills": [{"skill": // the skill ie. software development, "frameworks": "a comma separated list of frameworks they have used for this skill"}, ...] // ensure that every skill has at least one framework!,
-                    "experiences": [
-                        {
-                            "experience": // the experience ie. Software Engineer,
-                            "dates": // the dates of the experience ie. May 2024 - June 2025,
-                            "company_or_program": // the company or program they worked for,
-                            "location": // the location of the experience, ie. either state and city or remote,
-                            "skills": [{"skill": // the skill they used in the activity}, ...] // this needs to be a list of dictionaries, can be a maximum of 5 skills,
-                            "contributions": [{"contribution": // the contribution they made to the company or program}, ...] // this needs to be a list of dictionaries
-                        }
-                    ],
-                    "activities": [
-                        {
-                            "activity": // the activity ie. hackathon,
-                            "role": // the role they had in the activity, ie. Team Lead,
-                            "dates": // the dates of the activity ie. May 2024 - June 2025,
-                            "location": // the location of the activity, ie. either state and city or remote,
-                            "skills": [{"skill": // the skill they used in the activity}, ...] // this needs to be a list of dictionaries, can be a maximum of 5 skills,
-                            "contributions": [{"contribution": // the contribution they made to the activity}, ...] // this needs to be a list of dictionaries
-                        }
-                    ],
-                    "languages": // a comma separated list of languages they are proficient in,
-                    "interests": // a comma separated list of interests they have,
-                    "achievements": // a comma separated list of awards they have won, ie. Dean's List, etc.
-                }
-                The output should be a valid JSON object.
-                Do not include any other text in your response.
-                Do not change the resume text in any way, just parse it.
-                Do not lose any information from the resume text.
-                IMPORTANT: Ensure all strings are properly quoted and closed. Do not leave any unterminated strings.
+                You are a helpful assistant that parses resume text and extracts structured data for DOCX generation.
+                Analyze the provided resume text and extract all relevant information into the structured format.
+                Do not change or modify the resume text in any way, just parse and extract the information.
+                Ensure all required fields are populated. If information is missing, use appropriate placeholder text.
+                The template should not be less words than the original resume text.
                 `},
-            { role: "user", content: "This is the resume text: " + resumeText }
+            { role: "user", content: "Parse this resume text: " + resumeText }
         ],
+        tools: [docxGenerationTool],
+        tool_choice: { type: "function", function: { name: "parse_resume_to_json" } },
         max_tokens: 2000,
         temperature: 0.1,
     });
-    const res = response.choices[0].message.content;
     
-    // Try to parse the JSON with error handling
+    const toolCall = response.choices[0].message.tool_calls?.[0];
+    if (!toolCall || toolCall.function.name !== "parse_resume_to_json") {
+        throw new Error("Failed to get structured data from AI model");
+    }
+    
     try {
-        const json = JSON.parse(res || '{}');
+        const json = JSON.parse(toolCall.function.arguments);
         return json;
     } catch (parseError) {
         console.error('JSON parsing error:', parseError);
-        console.error('Raw response:', res);
+        console.error('Raw tool call arguments:', toolCall.function.arguments);
         
-        // Try to fix common JSON issues
-        let fixedResponse = res || '{}';
-        
-        // Remove any trailing commas before closing braces/brackets
-        fixedResponse = fixedResponse.replace(/,(\s*[}\]])/g, '$1');
-        
-        // Try to fix unterminated strings by finding the last quote and closing it
-        const lines = fixedResponse.split('\n');
-        for (let i = lines.length - 1; i >= 0; i--) {
-            const line = lines[i];
-            const quoteCount = (line.match(/"/g) || []).length;
-            if (quoteCount % 2 === 1) {
-                // Odd number of quotes means unterminated string
-                lines[i] = line + '"';
-                break;
-            }
-        }
-        fixedResponse = lines.join('\n');
-        
-        try {
-            const json = JSON.parse(fixedResponse);
-            console.log('Successfully parsed JSON after fixing');
-            return json;
-        } catch (secondError) {
-            console.error('Failed to parse JSON even after fixing:', secondError);
-            // Return a minimal valid structure
-            return {
-                full_name: 'Error parsing resume',
-                email: '',
-                phone: '',
-                linkedin: '',
-                website: '',
-                university_college: '',
-                university_location: '',
-                degree: '',
-                expected_graduation: '',
-                gpa: '',
-                relevant_courses: '',
-                skills: [],
-                experiences: [],
-                activities: [],
-                languages: '',
-                interests: '',
-                achievements: ''
-            };
-        }
+        // Return a minimal valid structure as fallback
+        return {
+            full_name: 'Error parsing resume',
+            email: '',
+            phone: '',
+            linkedin: '',
+            websites: [],
+            university_college: '',
+            university_location: '',
+            degree: '',
+            expected_graduation: '',
+            gpa: '',
+            relevant_courses: '',
+            skills: [],
+            experiences: [],
+            activities: [],
+            languages: '',
+            interests: '',
+            achievements: ''
+        };
     }
 }
 

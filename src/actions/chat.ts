@@ -163,20 +163,13 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
         // get examples from the database
         const { data: examples, error: examplesError } = await supabase.rpc('get_excerpts', {
             query_embedding: messageEmbedding.data[0].embedding,
-            neighbors: 10
+            neighbors: 25
         });
         if (examplesError) {
             console.error('Error getting examples:', examplesError);
             throw new Error('Failed to get examples');
         }
         const examples_text = examples.map((example: any) => example.content).join("\n");
-
-        const examples_text_context = `
-            This is a list of other resume excerpts that should be used as context to improve the user's resume:
-            --------------------------------
-            ${examples_text}
-            --------------------------------
-        `;
 
         let summary_text = 'No Previous Conversation History';
         if (past_messages.length > 10) {
@@ -192,6 +185,23 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
           summary_text = summary.choices[0]?.message?.content || 'No Previous Conversation History';
         }
 
+        const examples_content_summary = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo-0125",
+          temperature: 0.1,
+          max_tokens: 256,
+          messages: [
+            { role: "system", content: "In <200 words, summarise the content of the following resume excerpts from other professionals to provide context in answering the user's prompt about improving their resume: " + examples_text },
+            { role: "user", content: "The user's prompt is: " + message },
+          ]
+        });
+
+        const examples_content_summary_text = `
+          This is a summary of the content of the other professionals' resume excerpts that should be used as context to improve the user's resume and give them advice:
+          --------------------------------
+          ${examples_content_summary.choices[0]?.message?.content || 'No Examples Content Summary'}
+          --------------------------------
+        `;
+
         const instructions = `
             You are a professional resume reviewer. Focus on:
             • Specific, quantified achievements
@@ -199,6 +209,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             • Concrete tools / frameworks
 
             Do not focus on formatting, just focus on the content!
+            Do not focus on rewording the user's resume, just focus on improving the content.
             
             Format your responses using markdown:
             - Use **bold** for emphasis and section headers
@@ -206,21 +217,10 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             - Use numbered lists (1., 2., etc.) for sequential items
             - Structure your response with clear sections and proper formatting
 
-            For every analysis you must give in-text edits of how the user can improve.
-
-            Your response should be in the following format:
-
-            ...
-            ...
-            ...
-
-            @@edits@@
-            { "original": "The original text", "suggested": "The suggested edit" },
-            { "original": "The original text", "suggested": "The suggested edit" },
-            { "original": "The original text", "suggested": "The suggested edit" }
-
             Be concise.
             Important: Do not add any information (numbers, quantities, experiences, examples, etc.) that is not strictly in the user's resume.
+
+            Provide a detailed analysis of the resume first, then use the tool to suggest specific text edits.
         `;
         const context = `
             This is the extracted html of the user's resume:
@@ -234,16 +234,106 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             ${summary_text}
             --------------------------------
         `;
-        const fullResponse = await response(instructions, context, examples_text_context, past_messages_context, message);
         
-        // Remove edits section from raw response
-        const rawResponse = fullResponse.split('@@edits@@')[0].trim();
+        // Get response with edits using tool calls
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4.1",
+          messages: [
+            {
+              role: "system",
+              content: examples_content_summary_text,
+            },
+            {
+              role: "system",
+              content: context,
+            },
+            {
+              role: "system",
+              content: past_messages_context,
+            },
+            {
+              role: "system",
+              content: instructions,
+            },
+            {
+              role: "user",
+              content: message,
+            },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "generate_resume_edits",
+                description: "Generate specific html edits to improve the resume. Use X, Y, Z placeholders for quantities you don't know (e.g., '<p>increased efficiency by X%</p>', '<p>managed team of Y people</p>', '<p>completed project in Z months</p>').",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    edits: {
+                      type: "array",
+                      description: "Array of edit objects containing original and suggested html.",
+                      items: {
+                        type: "object",
+                        properties: {
+                          original: {
+                            type: "string",
+                            description: "Exact html from the resume that needs improvement"
+                          },
+                          suggested: {
+                            type: "string",
+                            description: "Improved version of the html. Edits should be concise and to the point."
+                          }
+                        },
+                        required: ["original", "suggested"]
+                      },
+                      maxItems: 5
+                    }
+                  },
+                  required: ["edits"]
+                }
+              }
+            }
+          ],
+          tool_choice: "auto",
+          max_tokens: 1000,
+          temperature: 0.3,
+        });
+
+        const analysis = completion.choices[0]?.message?.content || 'No analysis generated';
+        const toolCall = completion.choices[0]?.message?.tool_calls?.[0];
         
-        return {
-            rawResponse: rawResponse,
-            formattedResponse: formatAIResponse(fullResponse),
-            edits: formatEdits(fullResponse)
-        };
+        if (toolCall && toolCall.function.name === "generate_resume_edits") {
+          try {
+            const args = JSON.parse(toolCall.function.arguments);
+            const edits = args.edits && Array.isArray(args.edits) ? args.edits.filter((edit: any) => 
+              edit && 
+              typeof edit === 'object' && 
+              edit.original && 
+              edit.suggested &&
+              typeof edit.original === 'string' &&
+              typeof edit.suggested === 'string'
+            ) : [];
+            
+            return {
+              rawResponse: analysis,
+              formattedResponse: formatAIResponse(analysis),
+              edits: edits
+            };
+          } catch (parseError) {
+            console.warn('Failed to parse tool call arguments:', parseError);
+            return {
+              rawResponse: analysis,
+              formattedResponse: formatAIResponse(analysis),
+              edits: []
+            };
+          }
+        } else {
+          return {
+            rawResponse: analysis,
+            formattedResponse: formatAIResponse(analysis),
+            edits: []
+          };
+        }
     } catch (error) {
         console.error('Error calling OpenAI API:', error);
         // update responses left
@@ -251,47 +341,6 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
         throw new Error('Failed to get response from AI');
     }
 }
-
-export const response = async (instructions: string, context: string, examples: string, past_prompt_context: string, prompt: string): Promise<string> => {
-  try {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured');
-    }
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1",
-      messages: [
-        {
-          role: "system",
-          content: examples,
-        },
-        {
-          role: "system",
-          content: context,
-        },
-        {
-          role: "system",
-          content: past_prompt_context,
-        },
-        {
-          role: "system",
-          content: instructions,
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      max_tokens: 1000,
-      temperature: 0.3,
-    });
-
-    return completion.choices[0]?.message?.content || 'No response generated';
-  } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    throw new Error('Failed to get response from AI');
-  }
-};
 
 export const saveChatsToDatabase = async (userId: string, chats: any) => {
   const { data, error } = await supabase.from('chats').upsert({

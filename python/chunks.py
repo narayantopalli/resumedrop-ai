@@ -10,7 +10,7 @@ df = pd.read_csv(DATASET_PATH)
 resumes_str = df["Resume_str"].tolist()
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,
+    chunk_size=400,
     chunk_overlap=100,
 )
 chunks = []
