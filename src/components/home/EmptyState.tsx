@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import ToggleSwitch from './ToggleSwitch';
 
 interface EmptyStateProps {
   title?: string;

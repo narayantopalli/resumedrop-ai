@@ -4,9 +4,6 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
 import CountdownTimer from './CountdownTimer';
 import ContactModal from './ContactModal';
-import { updateUserIsPublic } from '@/actions/profile';
-import { useSession } from '@/contexts/SessionContext';
-import ToggleSwitch from '../home/ToggleSwitch';
 import ProfileCard from '../home/ProfileCard';
 import EmptyState from '../home/EmptyState';
 import Spinner from '../Spinner';
@@ -105,6 +102,8 @@ export default function ProfilesSection({
               icon="lock"
               heading="Profile is Private"
               description="Make your profile open to network!"
+              actionText="Go to Settings"
+              actionHref="/settings"
             />
           ) : suggestedProfiles.length === 0 ? (
             <div className="flex-1 p-4 flex items-center justify-center">

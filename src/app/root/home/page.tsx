@@ -6,8 +6,6 @@ import ProfilesSection from '@/components/home/ProfilesSection';
 import ResumeReviewAI from '@/components/home/ResumeReviewAI';
 import { useSession } from '@/contexts/SessionContext';
 import ResumePreview from '@/components/home/ResumePreview';
-import ToggleSwitch from '@/components/home/ToggleSwitch';
-import Modal from '@/components/Modal';
 import { updateUserIsPublic } from '@/actions/profile';
 import { Profile } from '@/components/home/types';
 import { getMatches, getProfile } from '@/actions/matches';
@@ -286,15 +284,6 @@ function HomePageContent() {
                 </div>
               </button>
             </div>
-            {userMetadata && (
-              <div className="flex items-center">
-                <ToggleSwitch 
-                  isOn={userMetadata?.isPublic} 
-                  onToggle={handlePrivacyToggle}
-                  disabled={isUpdatingPrivacy}
-                />
-              </div>
-            )}
           </nav>
         </div>
       </div>
@@ -356,19 +345,6 @@ function HomePageContent() {
           </div>
         )}
       </div>
-
-      {/* Privacy Warning Modal */}
-      <Modal
-        isOpen={showPrivacyWarning}
-        onClose={() => setShowPrivacyWarning(false)}
-        onConfirm={updatePrivacySetting}
-        title="Make Profile Private"
-        message="Are you sure you want to make your profile private? Only open profiles are able to network!"
-        confirmText="Make Private"
-        cancelText="Keep Open"
-        confirmButtonVariant="danger"
-        declineButtonVariant="success"
-      />
     </div>
   );
 }
