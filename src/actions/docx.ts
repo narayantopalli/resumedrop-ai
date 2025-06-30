@@ -225,6 +225,7 @@ async function parseResumeText(resumeText: string): Promise<any> {
                 Do not change or modify the resume text in any way, just parse and extract the information.
                 Ensure all required fields are populated. If information is missing, use appropriate placeholder text.
                 The template should not be less words than the original resume text.
+                Choose the most reasonable section to put each piece of information in from the resume text.
                 `},
             { role: "user", content: "Parse this resume text: " + resumeText }
         ],
@@ -304,10 +305,31 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
 
     const resumeData = await parseResumeText(text);
 
+    // Validate and ensure all required arrays exist
+    if (!resumeData) {
+      throw new Error('Failed to parse resume data');
+    }
+
+    // Ensure all arrays are defined
+    resumeData.experiences = resumeData.experiences || [];
+    resumeData.activities = resumeData.activities || [];
+    resumeData.skills = resumeData.skills || [];
+    resumeData.websites = resumeData.websites || [];
+
     // update saves left
     await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
 
-    const templated_experiences = resumeData.experiences.map((experience: any) => {
+    const templated_experiences = (resumeData.experiences || []).map((experience: any) => {
+      if (!experience || typeof experience !== 'object') {
+        return {
+          experience: '**Add experience here**',
+          dates: '**Add dates here**',
+          company_or_program: '**Add company here**',
+          location: '**Add location here**',
+          skills: '**Add skills here**',
+          contributions: '**Add contributions here**'
+        };
+      }
       return {
         experience: experience.experience && experience.experience !== undefined ? experience.experience : '**Add experience here**',
         dates: experience.dates && experience.dates !== undefined ? experience.dates : '**Add dates here**',
@@ -318,7 +340,17 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
       }
     });
 
-    const templated_activities = resumeData.activities.map((activity: any) => {
+    const templated_activities = (resumeData.activities || []).map((activity: any) => {
+      if (!activity || typeof activity !== 'object') {
+        return {
+          activity: '**Add activity here**',
+          role: '**Add role here**',
+          dates: '**Add dates here**',
+          location: '**Add location here**',
+          skills: '**Add skills here**',
+          contributions: '**Add contributions here**'
+        };
+      }
       return {
         activity: activity.activity && activity.activity !== undefined ? activity.activity : '**Add activity here**',
         role: activity.role && activity.role !== undefined ? activity.role : '**Add role here**',
@@ -329,14 +361,25 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
       }
     });
 
-    const templated_skills = resumeData.skills.map((skill: any) => {
+    const templated_skills = (resumeData.skills || []).map((skill: any) => {
+      if (!skill || typeof skill !== 'object') {
+        return {
+          skill: '**Add skill here**',
+          frameworks: '**Add frameworks here**'
+        };
+      }
       return {
         skill: skill.skill && skill.skill !== undefined ? skill.skill : '**Add skill here**',
         frameworks: skill.frameworks && skill.frameworks !== undefined ? skill.frameworks : '**Add frameworks here**'
       }
     });
 
-    const templated_websites = resumeData.websites.map((website: any) => {
+    const templated_websites = (resumeData.websites || []).map((website: any) => {
+      if (!website || typeof website !== 'object') {
+        return {
+          website: '**Add website here**'
+        };
+      }
       return {
         website: website.website && website.website !== undefined ? website.website : '**Add website here**'
       }
@@ -381,6 +424,10 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
     // Provide more specific error messages
     if (error instanceof SyntaxError && error.message.includes('JSON')) {
       return { success: false, error: 'Failed to parse resume data. The AI model returned invalid JSON. Please try again.' };
+    }
+    
+    if (error instanceof TypeError && error.message.includes('map')) {
+      return { success: false, error: 'Failed to process resume data. Some required sections are missing. Please try again.' };
     }
     
     return { success: false, error: 'Failed to generate DOCX. Please check the template and data format.' };

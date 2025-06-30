@@ -122,12 +122,12 @@ export default function ResumePreview({
     };
   }, []);
 
-  // Auto-clear error messages after 1 second
+  // Auto-clear error messages after 5 seconds
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
         setError(null);
-      }, 1000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [error]);
@@ -136,7 +136,7 @@ export default function ResumePreview({
     if (docxError) {
       const timer = setTimeout(() => {
         setDocxError(null);
-      }, 1000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [docxError]);
@@ -145,7 +145,7 @@ export default function ResumePreview({
     if (publishError) {
       const timer = setTimeout(() => {
         setPublishError(null);
-      }, 1000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [publishError]);
