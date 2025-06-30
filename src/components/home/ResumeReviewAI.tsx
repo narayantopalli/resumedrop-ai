@@ -98,13 +98,17 @@ const SuggestedEdits = ({
     onEditApplied(edit);
   };
 
+  const validEdits = edits.filter(edit => resumeText.includes(edit.original));
+
+  if (validEdits.length === 0) return null;
+
   return (
     <div className="mt-3 xl:mt-4 space-y-2 xl:space-y-3">
       <div className="text-xs xl:text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
         Suggested Edits
       </div>
       <div className="space-y-2 xl:space-y-3">
-        {edits.filter(edit => resumeText.includes(edit.original)).map((edit, index) => (
+        {validEdits.map((edit, index) => (
           <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 xl:p-4 border border-gray-200 dark:border-gray-700">
             <div className="flex items-start gap-2 xl:gap-3">
               <div className="flex-shrink-0 w-2 h-2 xl:w-3 xl:h-3 bg-red-500 rounded-full mt-2"></div>
