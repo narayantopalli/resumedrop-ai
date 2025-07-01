@@ -126,7 +126,7 @@ const docxGenerationTool = {
                   },
                   required: ["skill"]
                 },
-                maxItems: 3
+                maxItems: 5
               },
               contributions: {
                 type: "array",
@@ -178,7 +178,7 @@ const docxGenerationTool = {
                   },
                   required: ["skill"]
                 },
-                maxItems: 3
+                maxItems: 5
               },
               contributions: {
                 type: "array",
@@ -217,7 +217,7 @@ const docxGenerationTool = {
 
 async function parseResumeText(resumeText: string): Promise<any> {
     const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
             { role: "system", content: `
                 You are a helpful assistant that parses resume text and extracts structured data for DOCX generation.
