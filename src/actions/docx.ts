@@ -126,7 +126,7 @@ const docxGenerationTool = {
                   },
                   required: ["skill"]
                 },
-                maxItems: 5
+                maxItems: 3
               },
               contributions: {
                 type: "array",
@@ -178,7 +178,7 @@ const docxGenerationTool = {
                   },
                   required: ["skill"]
                 },
-                maxItems: 5
+                maxItems: 3
               },
               contributions: {
                 type: "array",
