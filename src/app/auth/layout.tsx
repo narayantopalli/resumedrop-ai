@@ -25,7 +25,7 @@ export default function AuthLayout({
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-neutral-800 rounded-full"></div>
-              <span className="text-neutral-700">Download your networking-ready formatted resume for free</span>
+              <span className="text-neutral-700">Download your networking-ready formatted resume</span>
             </div>
           </div>
         </div>
