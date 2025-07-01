@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
             .eq('id', data.user.id)
             .single();
 
-          if (resumeExtractedHtmlError || !resumeExtractedHtml || resumeExtractedHtml.extraction === null) {
+          if (resumeExtractedHtmlError || !resumeExtractedHtml || resumeExtractedHtml.extraction === null || resumeExtractedHtml.extraction === '' || resumeExtractedHtml.extraction === undefined) {
             // User doesn't have a resume, redirect to upload page
             return NextResponse.redirect(new URL('/upload', requestUrl.origin));
           } else {
