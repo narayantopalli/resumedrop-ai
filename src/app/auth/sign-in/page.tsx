@@ -63,15 +63,12 @@ function SignInForm() {
       if (error) {
         setError(error.message);
       } else {
-        const { data: resumeExtractedHtml, error: resumeExtractedHtmlError } = await supabase.from('resume_text').select('extraction').eq('id', data.user.id);
-        if (resumeExtractedHtmlError) {
-          console.error('Error getting resume extracted html:', resumeExtractedHtmlError);
+        const { data: resumeExtractedHtml, error: resumeExtractedHtmlError } = await supabase.from('resume_text').select('extraction').eq('id', data.user.id).single();
+        if (resumeExtractedHtmlError || !resumeExtractedHtml || resumeExtractedHtml.extraction === null || resumeExtractedHtml.extraction === '' || resumeExtractedHtml.extraction === undefined) {
           router.push("/upload");
+        } else {
+          router.push("/home");
         }
-        if (resumeExtractedHtml === undefined || resumeExtractedHtml === null || resumeExtractedHtml[0].extraction === null) {
-          router.push("/upload");
-        }
-        router.push("/home");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
