@@ -21,7 +21,7 @@ export default function AuthLayout({
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-neutral-800 rounded-full"></div>
-              <span className="text-neutral-700">Get free resume advice from AI tuned to your field</span>
+              <span className="text-neutral-700">Get free resume advice from AI tuned by professionals in your field</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-neutral-800 rounded-full"></div>
