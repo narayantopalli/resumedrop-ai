@@ -246,7 +246,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             }
           ],
           tool_choice: "auto",
-          max_tokens: 1000,
+          max_tokens: 2000,
           temperature: 0.3,
         });
 
