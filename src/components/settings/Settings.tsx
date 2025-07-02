@@ -49,7 +49,7 @@ export default function Settings() {
               onClick={() => {setActiveSection(section.id); setMessage(null)}}
               className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-200 sm:flex-1 xl:px-6 2xl:px-8 ${
                 isActive
-                  ? "bg-accent-600 text-white shadow-sm"
+                  ? "bg-secondary-600 text-white shadow-sm"
                   : "text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700"
               }`}
             >

@@ -1,16 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
-import Link from 'next/link';
-import CountdownTimer from './CountdownTimer';
-import ContactModal from './ContactModal';
-import ProfileCard from '../home/ProfileCard';
-import EmptyState from '../home/EmptyState';
-import Spinner from '../Spinner';
-import { Profile } from './types';
-import { getMatches } from '@/actions/matches';
-import { supabase } from '@/lib/supabase';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useEffect, useState, useMemo } from 'react';
+import CountdownTimer from '@/components/matches/CountdownTimer';
+import ContactModal from '@/components/matches/ContactModal';
+import ProfileCard from '@/components/matches/ProfileCard';
+import EmptyState from '@/components/EmptyState';
+import Spinner from '@/components/Spinner';
+import { Profile } from '@/components/matches/types';
 import { createLocalImageUrl } from '@/utils/imageUtils';
 
 interface ProfilesSectionProps {
@@ -72,9 +68,21 @@ export default function ProfilesSection({
         title="Similar Profiles"
         icon="user"
         heading="Sign in to view similar profiles"
-        description="Connect with students from your college and discover opportunities together."
+        description="Connect with students from your college with similar interests."
         actionText="Sign In"
         actionHref="/sign-in"
+      />
+    );
+  }
+
+  // Show sign-in prompt if no user college
+  if (!userMetadata.college || userMetadata.college === null || userMetadata.college === undefined || userMetadata.college === '') {
+    return (
+      <EmptyState
+        title="Similar Profiles"
+        icon="user"
+        heading="Sign in with a supported college email to view similar profiles"
+        description="Connect with students from your college with similar interests."
       />
     );
   }
@@ -125,7 +133,7 @@ export default function ProfilesSection({
                 ) : (
                   sortedProfilesWithLocalAvatar.map((profile, index) => (
                     <ProfileCard
-                      key={profile.id}
+                      key={profile.match_id}
                       profile={profile}
                       isBestMatch={index === 0}
                       onViewContact={() => handleViewContact(profile)}

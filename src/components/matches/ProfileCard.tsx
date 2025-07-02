@@ -48,7 +48,7 @@ export default function ProfileCard({
         
         {profile.reason && (
           <div className="mt-4 xl:mt-5 2xl:mt-6 border border-gray-200 dark:border-gray-700 rounded-lg p-2 xl:p-3 bg-gray-50 dark:bg-gray-800">
-            <p className="text-sm xl:text-base text-gray-700 dark:text-gray-200 font-serif italic">
+            <p className="text-sm xl:text-base text-gray-700 dark:text-gray-200 font-sans italic">
               {profile.reason}
             </p>
           </div>

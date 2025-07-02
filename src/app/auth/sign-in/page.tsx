@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FiEye, FiEyeOff, FiMail, FiLock } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { supabase } from "@/lib/supabase";
+import { getCollege, updateUserCollege } from "@/actions/auth";
 
 function SignInForm() {
   const [email, setEmail] = useState("");
@@ -22,9 +23,6 @@ function SignInForm() {
     const errorParam = searchParams.get('error');
     if (errorParam) {
       switch (errorParam) {
-        case 'unsupported_email':
-          setError("Your email domain is not supported. Please use an email from a supported college or university.");
-          break;
         case 'no_email':
           setError("No email address found. Please try signing in again.");
           break;
@@ -63,6 +61,11 @@ function SignInForm() {
       if (error) {
         setError(error.message);
       } else {
+        const college = await getCollege(data.user.email || "");
+        const { success: updatedCollegeSuccess, error: updatedCollegeError } = await updateUserCollege(data.user.id, college?.name || null);
+        if (!updatedCollegeSuccess) {
+          console.error(updatedCollegeError);
+        }
         const { data: resumeExtractedHtml, error: resumeExtractedHtmlError } = await supabase.from('resume_text').select('extraction').eq('id', data.user.id).single();
         if (resumeExtractedHtmlError || !resumeExtractedHtml || resumeExtractedHtml.extraction === null || resumeExtractedHtml.extraction === '' || resumeExtractedHtml.extraction === undefined) {
           router.push("/upload");
@@ -120,7 +123,7 @@ function SignInForm() {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
-      <div className="text-center mb-8">
+      <div className="text-center mb-4">
         <h2 className="text-2xl font-bold text-primary-900 mb-2">
           Welcome back
         </h2>
@@ -156,11 +159,11 @@ function SignInForm() {
       </button>
       
       <p className="text-xs text-neutral-500 mb-6 text-center">
-        Must use a supported college/university email address
+        Use your college email to find other students
       </p>
 
       {/* Divider */}
-      <div className="relative mb-6">
+      <div className="relative mb-2">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-neutral-300" />
         </div>

@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createOAuthUserProfile } from '@/actions/profile';
+import { upsertOAuthUserProfile } from '@/actions/profile';
 import { getCollege } from '@/actions/auth';
 
 const supabase = createClient(
@@ -59,30 +59,14 @@ export async function GET(request: NextRequest) {
           }
 
           const college = await getCollege(userEmail);
-          if (!college) {
-            console.error(`OAuth user with unsupported email domain: ${userEmail}`);
-            // Sign out the user since they can't use the service
-            await supabaseServer.auth.signOut();
-            return NextResponse.redirect(new URL('/sign-in?error=unsupported_email', requestUrl.origin));
-          }
 
-          // Check if user profile exists
-          const { data: existingProfile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
+          const profileResult = await upsertOAuthUserProfile(data.user.id, {
+            email: userEmail,
+            college: college?.name ?? null
+          });
 
-          // If profile doesn't have complete info, fix it
-          if (profileError || existingProfile?.college === null) {
-            const profileResult = await createOAuthUserProfile(data.user.id, {
-              email: userEmail,
-              college: college.name
-            });
-
-            if (!profileResult.success) {
-              console.error('Error creating OAuth user profile:', profileResult.error);
-            }
+          if (!profileResult.success) {
+            console.error('Error creating OAuth user profile:', profileResult.error);
           }
 
           // Check if user has a resume uploaded

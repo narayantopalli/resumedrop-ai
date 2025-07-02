@@ -145,9 +145,8 @@ Deno.serve(async (req: Request) => {
 
     const { data: resumesToUpdate, error: resumesToUpdateError } = await supabaseClient
       .from('resume_embeddings')
-      .select('id, isUpdated, profile:profiles!resume-embeddings_id_fkey(id)')
+      .select('id, isUpdated, profile:profiles!resume_embeddings_id_fkey(id)')
       .eq('isUpdated', false)
-      .eq('profile.isPublic', true);
 
     if (resumesToUpdateError) {
       return new Response(JSON.stringify({ error: 'Failed to get resumes to update' }), { 

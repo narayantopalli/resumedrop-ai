@@ -16,7 +16,7 @@ export async function createUserProfile(userId: string, profileData: {
     const { name, email, college } = profileData;
 
     // Validate required fields
-    if (!name || !email || !userId || !college) {
+    if (!name || !email || !userId ) {
       return {
         success: false,
         error: 'Missing required fields'
@@ -213,7 +213,7 @@ export async function updateUserProfile(userId: string, profileData: {
   }
 }
 
-export async function createOAuthUserProfile(userId: string, userData: {
+export async function upsertOAuthUserProfile(userId: string, userData: {
   email?: string;
   college?: string;
 }) {
@@ -228,33 +228,51 @@ export async function createOAuthUserProfile(userId: string, userData: {
       };
     }
 
-    // Insert user profile using service role key (bypasses RLS)
-    const { data, error } = await supabase
+    const { data: existingProfile, error: existingProfileError } = await supabase
       .from('profiles')
-      .update({
-        college: college || "",
-        isPublic: true,
-        avatar_url: null,
-        contactInfo: {
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (existingProfileError) {
+      console.error('Error getting existing profile:', existingProfileError);
+      return {
+        success: false,
+        error: existingProfileError.message
+      };
+    }
+
+    // Insert user profile using service role key (bypasses RLS)
+    const { data: upsertedProfile, error: upsertedProfileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        name: existingProfile?.name || "",
+        college: existingProfile?.college || "",
+        email: email || existingProfile?.email || "",
+        isPublic: existingProfile?.isPublic || true,
+        avatar_url: existingProfile?.avatar_url || null,
+        contactInfo: existingProfile?.contactInfo || {
           phone: "",
           github: "",
-          instagram: "",
+          instagram: "", 
           twitter: "",
           linkedin: "",
           email: email || ""
         }
       })
-      .eq('id', userId);
+      .select()
+      .single();
 
-    if (error) {
-      console.error('Error creating OAuth user profile:', error);
+    if (upsertedProfileError) {
+      console.error('Error creating OAuth user profile:', upsertedProfileError);
       return {
         success: false,
-        error: error.message
+        error: upsertedProfileError.message
       };
     }
 
-    return { success: true, data };
+    return { success: true, data: upsertedProfile };
   } catch (error) {
     console.error('Error in createOAuthUserProfile:', error);
     return {

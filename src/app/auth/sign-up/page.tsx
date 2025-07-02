@@ -114,13 +114,6 @@ export default function SignUpPage() {
         return;
       }
 
-      // Ensure we have the college information from validation
-      if (!validationResult.college) {
-        setError("Unable to determine your college. Please check your email address.");
-        setIsLoading(false);
-        return;
-      }
-
       // Create user account
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -231,7 +224,7 @@ export default function SignUpPage() {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
-      <div className="text-center mb-8">
+      <div className="text-center mb-4">
         <h2 className="text-2xl font-bold text-primary-900 mb-2">
           Create your account
         </h2>
@@ -273,11 +266,11 @@ export default function SignUpPage() {
       </button>
       
       <p className="text-xs text-neutral-500 mb-6 text-center">
-        Must use a supported college/university email address
+        Use your college email to find other students
       </p>
 
       {/* Divider */}
-      <div className="relative mb-6">
+      <div className="relative mb-2">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-neutral-300" />
         </div>

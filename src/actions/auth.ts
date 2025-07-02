@@ -45,9 +45,6 @@ export async function validateSignup(formData: {
   // Validate college and get college info
   if (email && supportedColleges) {
     college = await getCollege(email);
-    if (!college) {
-      errors.push("Email must be from a supported college");
-    }
   }
 
   // Validate password requirements
@@ -69,6 +66,11 @@ export async function validateSignup(formData: {
     message: errors.length === 0 ? "Validation passed" : "Validation failed",
     college: college?.name
   };
+}
+
+export async function updateUserCollege(userId: string, college: string | null) {
+  const { error } = await supabase.from('profiles').upsert({ id: userId, college: college || null });
+  return { success: error === null, error: error?.message };
 }
 
 export async function signOut() {

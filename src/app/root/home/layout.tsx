@@ -1,13 +1,16 @@
 import { ReactNode } from "react";
 
-interface HomeLayoutProps {
+interface ProfileLayoutProps {
   children: ReactNode;
 }
 
-export default function HomeLayout({ children }: HomeLayoutProps) {
+export default function ProfileLayout({ children }: ProfileLayoutProps) {
   return (
     <>
-      {children}
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
     </>
   );
-} 
+}

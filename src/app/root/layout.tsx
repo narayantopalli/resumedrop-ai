@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import HamburgerMenu from "@/components/HamburgerMenu";
+import Logo from "@/components/Logo";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -13,9 +14,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <div className="max-w-8xl 2xl:max-w-none mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-orange-600 dark:text-orange-400">
-                resumedrop.ai
-              </h1>
+              <Logo size="md" />
             </div>
             
             {/* Hamburger Menu with User Profile */}

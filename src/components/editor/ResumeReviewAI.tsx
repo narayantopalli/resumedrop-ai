@@ -19,7 +19,6 @@ interface ResumeReviewAIProps {
   userMetadata?: any;
   resumeText: string | null;
   setUserMetadata: any;
-  matches: any[];
 }
 
 // Template prompts for quick access
@@ -151,7 +150,7 @@ const SuggestedEdits = ({
   );
 };
 
-export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetadata, matches }: ResumeReviewAIProps) {
+export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetadata }: ResumeReviewAIProps) {
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [inputText, setInputText] = useState('');

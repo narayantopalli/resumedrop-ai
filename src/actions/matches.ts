@@ -30,6 +30,7 @@ export const getMatches = async (userId: string) => {
         const profile = await getProfile(match.match.id);
         return {
             ...match.match,
+            match_id: match.id,
             name: profile?.name,
             avatar_url: profile?.avatar_url,
             contactInfo: profile?.contactInfo

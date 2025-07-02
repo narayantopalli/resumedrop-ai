@@ -55,29 +55,26 @@ const getNote = async (userProfile: string, name1: string, profile1: string, nam
           "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`
         },
         body: JSON.stringify({
-          model: "gpt-4.1-mini",
+          model: "gpt-4.1",
           messages: [
             {
               role: "system",
               content: `
-              You are a helpful matchmaker.
+              You are a professional networking assistant.
               You are given a user's profile and a list of other profiles.
-              You are to write a short and sweet note about why the user should connect with each of the other users.
-              The note should be written in second person telling the user why they should connect with the other person.
-              Include specific relevant experiences and interests of the other person.
-              The note should include a suggestion about something they could discuss or connect on.
-              Please be concise and to the point.
-              Be as specific as possible.
-              Do not use gendered language, but you can use the name of the person.
-              Respond in JSON format with the following structure:
-              {
-                "note1": "Note about why the user should connect with person 1",
-                "note2": "Note about why the user should connect with person 2",
-                "note3": "Note about why the user should connect with person 3"
-              }
-              Do not include any other text in your response.
-              If a person is null, just return null for that note.
-              IMPORTANT: Ensure all strings are properly quoted and closed. Do not leave any unterminated strings.
+              You are to write a brief, professional note about potential connections between the user and each other person.
+              Each note should be no more than 100 words and written in a natural, conversational tone.
+              
+              Guidelines:
+              - Focus on 1-2 specific professional or academic interests they share
+              - Mention concrete reasons for the connection (same field, similar projects, etc.) BE SPECIFIC!
+              - Suggest 1-2 casual specific activities they might enjoy together (coffee, lunch, campus events, etc.)
+              - Keep the tone professional but friendly - avoid overly enthusiastic language
+              - Use the person's name naturally
+              - Write in second person
+              - If a person is null, return null for that note
+              
+              Avoid phrases like "spark exciting conversations", "geek out", "tinkering and building", or overly casual language.
               `
             },
             {
@@ -95,6 +92,39 @@ const getNote = async (userProfile: string, name1: string, profile1: string, nam
               `
             }
           ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "create_match_notes",
+                description: "Create personalized notes for potential matches",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    note1: {
+                      type: "string",
+                      description: "Note about why the user should connect with person 1"
+                    },
+                    note2: {
+                      type: "string",
+                      description: "Note about why the user should connect with person 2"
+                    },
+                    note3: {
+                      type: "string",
+                      description: "Note about why the user should connect with person 3"
+                    }
+                  },
+                  required: ["note1", "note2", "note3"]
+                }
+              }
+            }
+          ],
+          tool_choice: {
+            type: "function",
+            function: {
+              name: "create_match_notes"
+            }
+          },
           max_tokens: 1000,
           temperature: 0.7
         })
@@ -106,8 +136,13 @@ const getNote = async (userProfile: string, name1: string, profile1: string, nam
       }
 
       const { choices } = await openaiRes.json();
-      const summary = choices[0].message.content;
-      return JSON.parse(summary);
+      const toolCall = choices[0].message.tool_calls?.[0];
+      
+      if (toolCall && toolCall.function.name === "create_match_notes") {
+        return JSON.parse(toolCall.function.arguments);
+      } else {
+        throw new Error("Expected tool call response from OpenAI");
+      }
     } finally {
       // Always release the semaphore, even if there's an error
       openaiSemaphore.release();
@@ -134,6 +169,8 @@ Deno.serve(async (req: Request) => {
      = await supabaseClient.from('resume_embeddings')
     .select('id, embedding, summary, profile:profiles!resume_embeddings_id_fkey(id, college)')
     .eq('profile.isPublic', true)
+    .not('profile.college', 'is', null)
+    .not('profile.college', 'eq', '')
     .eq('isMatched', false);
 
     if (allPublicResumesError) {

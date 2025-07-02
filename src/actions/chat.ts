@@ -15,80 +15,9 @@ const MAX_PROMPT_TOKENS = 1024;
 const CHARS_PER_TOKEN = 4;
 const MAX_PROMPT_CHARS = MAX_PROMPT_TOKENS * CHARS_PER_TOKEN;
 
-const formatEdits = (text: string): { original: string; suggested: string; }[] => {
-  const edits: { original: string; suggested: string; }[] = [];
-  
-  // Look for the @@edits@@ section
-  const editsMatch = text.match(/@@edits@@([\s\S]*?)(?=@@|$)/);
-  
-  if (!editsMatch) {
-    return edits;
-  }
-  
-  const editsSection = editsMatch[1];
-  
-  // Clean up the edits section - remove extra braces and normalize
-  const cleanedSection = editsSection
-    .replace(/^\s*\{\s*/, '') // Remove leading { and whitespace
-    .replace(/\s*\}\s*$/, '') // Remove trailing } and whitespace
-    .trim();
-  
-  // Try to parse as a single JSON array first
-  try {
-    const parsedEdits = JSON.parse(`[${cleanedSection}]`);
-    if (Array.isArray(parsedEdits)) {
-      for (const edit of parsedEdits) {
-        if (edit && typeof edit === 'object' && edit.original && edit.suggested) {
-          edits.push({
-            original: edit.original,
-            suggested: edit.suggested
-          });
-        }
-      }
-      return edits;
-    }
-  } catch (error) {
-    // If single JSON array parsing fails, try individual objects
-  }
-  
-  // Fallback: Parse individual JSON objects
-  // Use a more robust regex that handles nested braces
-  const jsonMatches = cleanedSection.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
-  
-  if (jsonMatches) {
-    for (const jsonMatch of jsonMatches) {
-      try {
-        const edit = JSON.parse(jsonMatch);
-        if (edit && typeof edit === 'object' && edit.original && edit.suggested) {
-          edits.push({
-            original: edit.original,
-            suggested: edit.suggested
-          });
-        }
-      } catch (error) {
-        console.warn('Failed to parse edit JSON:', jsonMatch);
-        // Try to extract original and suggested manually as last resort
-        const originalMatch = jsonMatch.match(/"original":\s*"([^"]+)"/);
-        const suggestedMatch = jsonMatch.match(/"suggested":\s*"([^"]+)"/);
-        if (originalMatch && suggestedMatch) {
-          edits.push({
-            original: originalMatch[1],
-            suggested: suggestedMatch[1]
-          });
-        }
-      }
-    }
-  }
-  
-  return edits;
-};
-
 // Function to format AI response with proper markdown styling
 const formatAIResponse = (text: string): string => {
-  // remove the @@edits@@ section and everything after it
-  const textWithoutEdits = text.split('@@edits@@')[0].trim();
-  
-  return textWithoutEdits
+  return text
     // Bold text with ** or __
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/__(.*?)__/g, '<strong>$1</strong>')
@@ -113,6 +42,8 @@ const formatAIResponse = (text: string): string => {
     .replace(/```([\s\S]*?)```/g, '<code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono">$1</code>')
     // Inline code
     .replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">$1</code>')
+    // Horizontal rules (---)
+    .replace(/^---$/gm, '<hr class="my-1 border-gray-300 dark:border-gray-600" />')
     // Line breaks
     .replace(/\n/g, '<br />');
 };
@@ -204,12 +135,31 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
 
         const instructions = `
             You are a professional resume reviewer. Focus on:
-            • Specific, quantified achievements
-            • Action verbs & metrics
-            • Concrete tools / frameworks
+            • Specific, quantified achievements with concrete numbers and metrics
+            • Action verbs that demonstrate impact and results
+            • Concrete tools, frameworks, and technologies used
+            • Measurable outcomes and business impact
 
             Do not focus on formatting, just focus on the content!
             Do not focus on rewording the user's resume, just focus on improving the content.
+            
+            CRITICAL: Avoid generic, vague language like:
+            - "innovation and technical excellence"
+            - "outstanding performance"
+            - "excellent results"
+            - "strong leadership"
+            - "proven track record"
+            - "software solutions"
+            - "technical expertise"
+            - "data-driven insights"
+            - "strategic planning"
+            - "customer-centric approach"
+            - "team collaboration"
+            - "process optimization"
+            - "innovative solutions"
+            - etc.
+            
+            Instead, use specific, measurable language that demonstrates concrete value and impact.
             
             Format your responses using markdown:
             - Use **bold** for emphasis and section headers
@@ -219,6 +169,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
 
             Be concise.
             Important: Do not add any information (numbers, quantities, experiences, examples, etc.) that is not strictly in the user's resume.
+            You are not allowed to answer prompts that do not relate to the user's resume or career.
 
             Provide a detailed analysis of the resume first, then use the tool to suggest specific text edits.
         `;

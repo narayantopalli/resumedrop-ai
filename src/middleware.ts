@@ -69,6 +69,8 @@ export async function middleware(req: NextRequest) {
     const validRoutes = [
       '/',
       '/home',
+      '/editor',
+      '/matches',
       '/upload',
       '/settings',
       '/sign-in',
@@ -78,7 +80,8 @@ export async function middleware(req: NextRequest) {
       '/forgot-password',
       '/reset-password',
       '/auth/callback',
-      '/favicon.ico'
+      '/favicon.ico',
+      '/logo.png'
     ];
 
     // Define protected routes that require authentication
