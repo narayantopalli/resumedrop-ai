@@ -10,7 +10,7 @@ export default function AuthLayout({
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-100 to-secondary-50 flex-col justify-center items-center px-12">
         <div className="max-w-md text-center text-neutral-800">
-          <div className="mb-6">
+          <div className="mb-2">
             <Logo size="lg" className="justify-center" />
           </div>
           <p className="text-xl mb-8 text-primary-700">
@@ -19,15 +19,15 @@ export default function AuthLayout({
           <div className="space-y-4">
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 rounded-full"></div>
-              <span className="text-neutral-700">Meet people who are ambitious and driven like you</span>
-            </div>
-            <div className="flex items-center justify-center space-x-3">
-              <div className="w-3 h-3 bg-primary-800 rounded-full"></div>
-              <span className="text-neutral-700">Get AI resume advice from industry professionals</span>
+              <span className="text-neutral-700">Get instant resume advice based on industry standards</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 rounded-full"></div>
               <span className="text-neutral-700">Download your networking-ready formatted resume</span>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-3 h-3 bg-primary-800 rounded-full"></div>
+              <span className="text-neutral-700">Connect with peers who have similar interests</span>
             </div>
           </div>
         </div>
