@@ -172,6 +172,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             You are not allowed to answer prompts that do not relate to the user's resume or career.
 
             Provide a detailed analysis of the resume first, then use the tool to suggest specific text edits.
+            Remember: You MUST use the generate_resume_edits tool to provide specific HTML edits for the resume.
         `;
         const context = `
             This is the extracted html of the user's resume:
@@ -246,7 +247,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             }
           ],
           tool_choice: "auto",
-          max_tokens: 2000,
+          max_tokens: 1000,
           temperature: 0.3,
         });
 
