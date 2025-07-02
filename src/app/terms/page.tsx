@@ -112,11 +112,10 @@ export default function TermsOfService() {
                 The Service enables professional networking by:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
-                <li>Displaying your profile information to other users based on AI-generated matches</li>
-                <li>Sharing contact information (email, phone, LinkedIn, GitHub, etc.) with matched users</li>
-                <li>Providing real-time updates when new matches are available</li>
+                <li>Displaying your profile information to other users</li>
+                <li>Sharing contact information (email, phone, LinkedIn, GitHub, etc.) with other users</li>
+                <li>Providing real-time updates when new connections are available</li>
                 <li>Enabling college-specific networking within your institution</li>
-                <li>Generating personalized connection suggestions with AI-written reasoning</li>
               </ul>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
                 You control your profile visibility through privacy settings and can toggle between public and private modes. Private profiles cannot participate in networking features.
@@ -170,7 +169,7 @@ export default function TermsOfService() {
                 10. Disclaimers
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                The Service is provided "as is" without warranties of any kind. We do not guarantee the accuracy of AI-generated matches, the availability of the Service, or the quality of networking connections. We are not responsible for the actions or content of other users, and we do not guarantee employment opportunities or career outcomes.
+                The Service is provided "as is" without warranties of any kind. We do not guarantee the accuracy of AI-generated content, the availability of the Service, or the quality of networking connections. We are not responsible for the actions or content of other users, and we do not guarantee employment opportunities or career outcomes.
               </p>
             </section>
 

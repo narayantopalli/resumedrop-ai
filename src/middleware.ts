@@ -70,7 +70,7 @@ export async function middleware(req: NextRequest) {
       '/',
       '/home',
       '/editor',
-      '/matches',
+      '/profiles',
       '/upload',
       '/settings',
       '/sign-in',

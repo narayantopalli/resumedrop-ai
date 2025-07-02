@@ -8,7 +8,7 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-secondary-100 to-secondary-50 flex-col justify-center items-center px-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-100 to-secondary-50 flex-col justify-center items-center px-12">
         <div className="max-w-md text-center text-neutral-800">
           <div className="mb-6">
             <Logo size="lg" className="justify-center" />

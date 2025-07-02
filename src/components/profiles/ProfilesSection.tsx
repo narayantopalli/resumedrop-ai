@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import CountdownTimer from '@/components/matches/CountdownTimer';
-import ContactModal from '@/components/matches/ContactModal';
-import ProfileCard from '@/components/matches/ProfileCard';
+import CountdownTimer from '@/components/profiles/CountdownTimer';
+import ContactModal from '@/components/profiles/ContactModal';
+import ProfileCard from '@/components/profiles/ProfileCard';
 import EmptyState from '@/components/EmptyState';
 import Spinner from '@/components/Spinner';
-import { Profile } from '@/components/matches/types';
+import { Profile } from '@/components/profiles/types';
 import { createLocalImageUrl } from '@/utils/imageUtils';
 
 interface ProfilesSectionProps {

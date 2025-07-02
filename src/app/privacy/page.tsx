@@ -81,7 +81,7 @@ export default function PrivacyPolicy() {
                 <li>Create searchable embeddings for intelligent user matching</li>
                 <li>Match you with other users based on skills, experience, and college affiliation</li>
                 <li>Generate personalized networking recommendations with AI-written reasoning</li>
-                <li>Send real-time notifications about new matches and connections</li>
+                <li>Send real-time notifications about new connections</li>
                 <li>Improve our AI algorithms and matching capabilities</li>
                 <li>Ensure the security and integrity of the Service</li>
                 <li>Comply with legal obligations</li>

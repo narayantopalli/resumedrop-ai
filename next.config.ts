@@ -47,8 +47,8 @@ const nextConfig: NextConfig = {
         destination: '/root/settings',
       },
       {
-        source: '/matches',
-        destination: '/root/matches',
+        source: '/profiles',
+        destination: '/root/profiles',
       },
       {
         source: '/editor',

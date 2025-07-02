@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from '@/contexts/SessionContext';
-import ProfilesSection from '@/components/matches/ProfilesSection';
-import { Profile } from '@/components/matches/types';
+import ProfilesSection from '@/components/profiles/ProfilesSection';
+import { Profile } from '@/components/profiles/types';
 import { getMatches, getProfile } from '@/actions/matches';
 import { supabase } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -117,7 +117,7 @@ function MatchesPageContent() {
   }, [userMetadata?.id]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mt-2">
       {/* Tab Content */}
       <div className="flex-1">
 

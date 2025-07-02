@@ -73,9 +73,9 @@ export default function HomePageContent() {
       gradient: "#00b09b 0%, #96c93d 100%"
     },
     {
-      title: "Find Matches",
-      description: "Discover and connect with students from your college who are interested in similar things.",
-      href: "/matches",
+      title: "Find Profiles",
+      description: "Discover and connect with students from your college with similar interests.",
+      href: "/profiles",
       icon: <FiUsers className="w-7 h-7" />,
       color: "pink",
       gradient: "#ff6b9d 0%, #c44569 100%"
@@ -126,18 +126,18 @@ export default function HomePageContent() {
               Quick Tips
             </h3>
           </div>
-          <ul className="text-sm text-neutral-700 dark:text-neutral-300 space-y-2">
-            <li className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-secondary-500 to-primary-600 rounded-full"></div>
-              Use the AI editor to improve your resume
+          <ul className="text-sm text-neutral-700 dark:text-neutral-300 space-y-3">
+            <li className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-gradient-to-r from-secondary-500 to-primary-600 rounded-full flex-shrink-0 mt-2"></div>
+              <span className="leading-relaxed">Use the AI editor to improve your resume</span>
             </li>
-            <li className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-secondary-400 to-primary-500 rounded-full"></div>
-              Keep your resume updated for better match suggestions
+            <li className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-gradient-to-r from-secondary-400 to-primary-500 rounded-full flex-shrink-0 mt-2"></div>
+              <span className="leading-relaxed">Keep your resume updated for better match suggestions</span>
             </li>
           </ul>
         </div>
       </div>
     </div>
   );
-} 
+}
