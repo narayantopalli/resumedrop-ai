@@ -25,4 +25,29 @@ export function htmlToPlainText(html: string): string {
     .trim();
   
   return text;
+}
+
+/**
+ * Normalizes text for edit comparison by handling newlines and whitespace
+ * Server-side compatible version
+ * @param text - The text to normalize
+ * @returns Normalized text suitable for edit matching
+ */
+export function normalizeTextForEditComparison(text: string): string {
+  if (!text) return '';
+  
+  return text
+    // Normalize newlines first
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Remove extra whitespace between lines
+    .replace(/\n\s*\n/g, '\n')
+    // Remove leading/trailing whitespace from each line
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n')
+    // Final trim
+    .trim();
 } 

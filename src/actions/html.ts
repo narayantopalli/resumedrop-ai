@@ -29,5 +29,12 @@ export const plainTextToHtml = async (text: string) => {
         max_tokens: 2000,
         temperature: 0.1
     });
-    return response.choices[0].message.content;
+    
+    // Remove indentation from the HTML response
+    const htmlContent = response.choices[0].message.content;
+    if (htmlContent) {
+        // Remove leading/trailing whitespace and normalize line breaks
+        return htmlContent.trim().replace(/^\s+/gm, '');
+    }
+    return htmlContent;
 };

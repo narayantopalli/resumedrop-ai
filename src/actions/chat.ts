@@ -2,6 +2,7 @@
 
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
+import { normalizeTextForEditComparison } from '@/utils/serverUtils';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -143,24 +144,27 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             Do not focus on formatting, just focus on the content!
             Do not focus on rewording the user's resume, just focus on improving the content.
             
-            CRITICAL: Avoid generic, vague language like:
-            - "innovation and technical excellence"
-            - "outstanding performance"
-            - "excellent results"
-            - "strong leadership"
-            - "proven track record"
-            - "software solutions"
-            - "technical expertise"
-            - "data-driven insights"
-            - "strategic planning"
-            - "customer-centric approach"
-            - "team collaboration"
+            CRITICAL: DO NOT USE generic, vague language like:
+            - "innovation/innovative"
+            - "excellence/outstanding/excellent"
+            - "strong/proven track record"
+            - "technical expertise/skills"
+            - "data-driven"
+            - "strategic/strategies"
+            - "customer-centric"
             - "process optimization"
-            - "innovative solutions"
-            - "technical skills"
-            - "workflows"
-            - "technical expertise"
+            - "solutions"
+            - "insights"
+            - "impactful"
+            - "seeking opportunities"
+            - "deliver measurable results"
+            - "contributed to"
+            - "sharing technical"
+            - "improved strategies"
+            - "project execution"
             - "automation"
+            - "workflows"
+            - "team ..." (e.g. team collaboration, team efficiency, team performance, team productivity, team success, team achievements, team goals, team objectives)
             - etc.
             
             Instead, use specific, measurable language that demonstrates concrete value and impact.
@@ -234,7 +238,7 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
                         properties: {
                           original: {
                             type: "string",
-                            description: "Exact html from the resume that needs improvement"
+                            description: "HTML from the resume that needs improvement, make sure this matches exactly to the original html in the resume"
                           },
                           suggested: {
                             type: "string",
@@ -258,11 +262,11 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
 
         const analysis = completion.choices[0]?.message?.content || 'No analysis generated';
         const toolCall = completion.choices[0]?.message?.tool_calls?.[0];
-        
+
         if (toolCall && toolCall.function.name === "generate_resume_edits") {
           try {
             const args = JSON.parse(toolCall.function.arguments);
-            const edits = args.edits && Array.isArray(args.edits) ? args.edits.filter((edit: any) => 
+            const rawEdits = args.edits && Array.isArray(args.edits) ? args.edits.filter((edit: any) => 
               edit && 
               typeof edit === 'object' && 
               edit.original && 
@@ -271,10 +275,16 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
               typeof edit.suggested === 'string'
             ) : [];
             
+            // Normalize the edits to handle newline differences
+            const normalizedEdits = rawEdits.map((edit: any) => ({
+              original: normalizeTextForEditComparison(edit.original),
+              suggested: normalizeTextForEditComparison(edit.suggested)
+            }));
+
             return {
               rawResponse: analysis,
               formattedResponse: formatAIResponse(analysis),
-              edits: edits
+              edits: normalizedEdits
             };
           } catch (parseError) {
             console.warn('Failed to parse tool call arguments:', parseError);

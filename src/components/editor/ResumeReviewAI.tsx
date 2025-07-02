@@ -281,6 +281,7 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
     try {
       const {rawResponse, formattedResponse, edits} = await getChatResponse(resumeText, message_history, prompt, userMetadata.id);
 
+      // Filter out edits that are not in the resume text
       const validEdits = edits.filter(edit => resumeText.includes(edit.original));
 
       const aiMessage: ChatMessage = {
@@ -493,7 +494,7 @@ export default function ResumeReviewAI({ userMetadata, resumeText, setUserMetada
       </div>
 
       {/* Chat Input */}
-      <div className="p-4 xl:p-6 pt-2 xl:pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="p-4 xl:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex gap-2 xl:gap-3">
           <textarea
             value={inputText}
