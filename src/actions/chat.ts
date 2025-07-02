@@ -157,6 +157,10 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             - "team collaboration"
             - "process optimization"
             - "innovative solutions"
+            - "technical skills"
+            - "workflows"
+            - "technical expertise"
+            - "automation"
             - etc.
             
             Instead, use specific, measurable language that demonstrates concrete value and impact.
@@ -172,7 +176,8 @@ export const getChatResponse = async (resumeText: string, pastMessages: string, 
             You are not allowed to answer prompts that do not relate to the user's resume or career.
 
             Provide a detailed analysis of the resume first, then use the tool to suggest specific text edits.
-            Remember: You MUST use the generate_resume_edits tool to provide specific HTML edits for the resume.
+
+            YOU MUST REMEMBER TO CALL THE TOOL AND GENERATE SPECIFIC HTML EDITS!
         `;
         const context = `
             This is the extracted html of the user's resume:
