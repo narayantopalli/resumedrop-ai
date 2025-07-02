@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "resumedrop.ai - Build a lasting network!",
-  description: "Ready to upgrade your network? Just upload a copy of your resume and we'll take care of the rest. 😊",
+  title: "resumedrop.ai - Improve your resume, find your dream job!",
+  description: "Ready to apply for your dream job? Just upload a copy of your resume and we'll take care of the rest. 😊",
   keywords: ["resume", "resume drop", "ai", "networking", "linkedin", "job search", "job matching", "job finding", "job application", "job application matching", "job application finding", "job application networking", "college", "college networking", "college job search", "college job matching", "college job finding", "college job application", "college job application matching", "college job application finding", "college job application networking"],
   authors: [{ name: "Narayan V. Topalli" }],
 };

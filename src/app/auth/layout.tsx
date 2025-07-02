@@ -14,7 +14,7 @@ export default function AuthLayout({
             <Logo size="lg" className="justify-center" />
           </div>
           <p className="text-xl mb-8 text-primary-700">
-            Build a lasting network!
+            Improve your resume, find your dream job!
           </p>
           <div className="space-y-4">
             <div className="flex items-center justify-center space-x-3">
@@ -42,7 +42,7 @@ export default function AuthLayout({
               <Logo size="md" className="justify-center" />
             </div>
             <p className="text-neutral-600">
-              Build a lasting network!
+              Improve your resume, find your dream job!
             </p>
           </div>
           
