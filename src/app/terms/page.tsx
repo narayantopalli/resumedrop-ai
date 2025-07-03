@@ -39,7 +39,7 @@ export default function TermsOfService() {
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li>AI-powered resume analysis and text extraction from PDF, DOCX, and TXT files</li>
-                <li>Intelligent matching using third-party LLMs to find users with complementary skills and similar professional interests</li>
+                <li>Intelligent matching using OpenAI GPT models to find users with complementary skills and similar professional interests</li>
                 <li>College-specific networking to connect with students from your institution</li>
                 <li>Real-time profile discovery and connection suggestions</li>
                 <li>Professional contact information sharing and networking tools</li>
@@ -70,7 +70,7 @@ export default function TermsOfService() {
                 By uploading your resume to the Service, you:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
-                <li>Grant us permission to process and analyze your resume using AI technology including third-party LLMs</li>
+                <li>Grant us permission to process and analyze your resume using AI technology including OpenAI GPT models</li>
                 <li>Represent that you own or have the right to use all content in your resume</li>
                 <li>Agree that your resume content is accurate and truthful</li>
                 <li>Consent to the sharing of your profile information with other users based on AI-generated matching criteria</li>
@@ -88,7 +88,7 @@ export default function TermsOfService() {
                 5. AI Processing and Data Usage
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Our AI technology, including third-party LLMs, processes your resume to:
+                Our AI technology, including OpenAI GPT models, processes your resume to:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li>Extract skills, experience, education, and other relevant information</li>

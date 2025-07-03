@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li>Provide and maintain the AI-powered networking Service</li>
-                <li>Process and analyze your resume using third-party LLMs and other AI technologies</li>
+                <li>Process and analyze your resume using OpenAI GPT models and other AI technologies</li>
                 <li>Create searchable embeddings for intelligent user matching</li>
                 <li>Match you with other users based on skills, experience, and college affiliation</li>
                 <li>Generate personalized networking recommendations with AI-written reasoning</li>
@@ -94,7 +94,7 @@ export default function PrivacyPolicy() {
                 4. AI Processing and Data Analysis
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Our AI technology, including third-party LLMs, processes your resume to:
+                Our AI technology, including OpenAI GPT models, processes your resume to:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
                 <li>Extract skills, experience, education, and other relevant information</li>
@@ -141,7 +141,7 @@ export default function PrivacyPolicy() {
                 5.2 AI Service Providers
               </h3>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                We share resume content with third-party LLMs for AI processing and analysis. Third-party LLMs processes your data according to their privacy policy and data handling practices.
+                We share resume content with OpenAI GPT models for AI processing and analysis. OpenAI GPT models processes your data according to their privacy policy and data handling practices.
               </p>
 
               <h3 className="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3 flex items-center gap-2">
@@ -239,7 +239,7 @@ export default function PrivacyPolicy() {
                 Our Service integrates with third-party services:
               </p>
               <ul className="list-disc pl-6 text-neutral-700 dark:text-neutral-300 mb-4 space-y-1">
-                <li><strong>Third-party LLMs:</strong> For AI processing and analysis of resume content</li>
+                <li><strong>OpenAI GPT models:</strong> For AI processing and analysis of resume content</li>
                 <li><strong>Supabase:</strong> For authentication, database, and file storage</li>
                 <li><strong>Google OAuth:</strong> For authentication (optional)</li>
               </ul>
@@ -264,7 +264,7 @@ export default function PrivacyPolicy() {
                 12. International Data Transfers
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 mb-4">
-                Your information may be transferred to and processed in countries other than your own, including for AI processing by third-party LLMs. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy and applicable data protection laws.
+                Your information may be transferred to and processed in countries other than your own, including for AI processing by OpenAI GPT models. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy and applicable data protection laws.
               </p>
             </section>
 

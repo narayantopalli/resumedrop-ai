@@ -26,17 +26,17 @@ const templatePrompts = [
   {
     id: 'review',
     title: 'Grade my resume',
-    prompt: 'Can you grade my resume and provide feedback on its content, effectiveness, and specificity. Give a letter and a numerical grade.'
+    prompt: 'Can you grade my resume and provide feedback on its content, effectiveness, and specificity. Give a letter and a numerical grade. Make sure to give me a grade for each section of my resume.'
   },
   {
     id: 'keywords',
     title: 'Optimize for keywords',
-    prompt: 'Help me optimize my resume with relevant keywords for my target industry and job roles.'
+    prompt: 'Help me optimize my resume with relevant keywords for my target industry and internship roles.'
   },
   {
     id: 'career',
     title: 'Give me career advice',
-    prompt: 'What are some experiences that professionals in my field did? Quote specific examples and give me advice based on my resume.'
+    prompt: 'What are some skills and experiences that professionals in my field built up? Quote specific examples and give me advice based on my resume.'
   },
   {
     id: 'edits',
