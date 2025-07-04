@@ -35,6 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" />
+        <meta name='impact-site-verification' content='15a04597-e1c6-490c-8ec4-07b547e38fba' />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-neutral-50 dark:bg-neutral-900`}
