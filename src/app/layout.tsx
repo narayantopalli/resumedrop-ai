@@ -35,11 +35,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <meta name='impact-site-verification' content='15a04597-e1c6-490c-8ec4-07b547e38fba' />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-neutral-50 dark:bg-neutral-900`}
       >
+        Impact-Site-Verification: f47aee99-2304-46fb-ad89-ea4caf65c4ef
         <SessionProvider>
           <div className="min-h-screen flex flex-col">
             <main className="flex-1">
