@@ -39,7 +39,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-neutral-50 dark:bg-neutral-900`}
       >
-        Impact-Site-Verification: f47aee99-2304-46fb-ad89-ea4caf65c4ef
         <SessionProvider>
           <div className="min-h-screen flex flex-col">
             <main className="flex-1">
