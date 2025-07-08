@@ -54,7 +54,7 @@ export default function AuthLayout({
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 dark:bg-primary-200 rounded-full"></div>
-              <span className="text-neutral-700 dark:text-neutral-300">Get instant resume improvements based on industry standards</span>
+              <span className="text-neutral-700 dark:text-neutral-300">Get professional resume feedback instantly</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 dark:bg-primary-200 rounded-full"></div>
