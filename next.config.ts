@@ -53,7 +53,19 @@ const nextConfig: NextConfig = {
       {
         source: '/editor',
         destination: '/root/editor',
-      }
+      },
+      {
+        source: '/skills',
+        destination: '/root/skills',
+      },
+      {
+        source: '/leads',
+        destination: '/root/leads',
+      },
+      {
+        source: '/game',
+        destination: '/root/game',
+      },
     ];
   },
 };

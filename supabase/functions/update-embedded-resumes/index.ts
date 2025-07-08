@@ -68,6 +68,8 @@ const getSummary = async (text: string) => {
                 - Candidate's interests
               Be specific and concise with sentences and don't include personally identifiable information.
               Return as a comma separated list of sentences.
+
+              INCLUDE THE CANDIDATE'S EXPECTED OR ACTUAL GRADUATION YEAR IF IT IS IN THEIR PROFILE!
               `
             },
             {

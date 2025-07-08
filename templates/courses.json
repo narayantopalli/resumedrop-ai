@@ -1,0 +1,62 @@
+{
+    "Python": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/learning-python-2021/learning-python-22821893"
+    },
+    "Excel": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/excel-essential-training-microsoft-365-25302368/getting-started-with-excel-for-microsoft-365"
+    },
+    "PowerPoint": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/powerpoint-essential-training-microsoft-365/deliver-a-powerful-message-with-a-powerful-presentation"
+    },
+    "Word": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/word-essential-training-microsoft-365-2023/create-brilliant-documents-with-microsoft-word"
+    },
+    "Public Speaking": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/public-speaking-foundations-2018/deliver-a-great-presentation"
+    },
+    "Artificial Intelligence": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/introduction-to-artificial-intelligence-24947908/why-you-need-to-know-about-artificial-intelligence"
+    },
+    "Machine Learning": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/artificial-intelligence-foundations-machine-learning-22345868/introduction-to-ai-foundations-machine-learning-course"
+    },
+    "Data Science (R)": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/r-for-data-science-analysis-and-visualization/r-for-data-science-25381119"
+    },
+    "Data Science (Excel)": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/learning-excel-data-analysis-18868618/analyze-your-data-effectively-24043673"
+    },
+    "Databases": {  
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/database-foundations-intro-to-databases/an-introduction-to-database-foundations"
+    },
+    "Relational Databases": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/relational-databases-essential-training/organize-data-with-the-relational-model"
+    },
+    "Java (OOP)": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/java-object-oriented-programming-2/why-learn-about-object-oriented-programming-in-java"
+    },
+    "React": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/react-essential-training/building-modern-user-interfaces-with-react"
+    },
+    "C# (.NET Framework)": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/c-sharp-and-dot-net-essential-training/dot-net-the-everywhere-framework"
+    },
+    "LLM Prompt Engineering": {
+        "provider": "LinkedIn Learning",
+        "url": "https://www.linkedin.com/learning/prompt-engineering-how-to-talk-to-the-ais/talking-to-the-ais"
+    }
+}

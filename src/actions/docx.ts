@@ -277,7 +277,7 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
       return { success: false, error: 'No text provided' };
     }
 
-    // get saves left
+    // Get saves left
     const { data: userData, error: userMetadataError } = await supabase.from('profiles').select('saves_left').eq('id', userId).single();
     if (userMetadataError) {
       console.error('Error getting user metadata:', userMetadataError);
@@ -290,6 +290,7 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
       return { success: false, error: 'You have no saves left.' };
     }
 
+    // Get template from supabase storage
     const { data: templateContent, error: templateContentError } = await supabase.storage.from('templates').download('resume-template.docx');
     if (templateContentError) {
       return { success: false, error: 'Template file not found' };
@@ -316,7 +317,7 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
     resumeData.skills = resumeData.skills || [];
     resumeData.websites = resumeData.websites || [];
 
-    // update saves left
+    // Update saves left
     await supabase.from('profiles').update({ saves_left: userMetadata.saves_left - 1 }).eq('id', userId);
 
     const templated_experiences = (resumeData.experiences || []).map((experience: any) => {
@@ -419,7 +420,7 @@ export async function generateDocx(text: string, userId: string): Promise<{ succ
 
   } catch (error) {
     console.error('DOCX generation error:', error);
-    // update saves left
+    // Update saves left
     await supabase.from('profiles').update({ saves_left: userMetadata.saves_left }).eq('id', userId);
     // Provide more specific error messages
     if (error instanceof SyntaxError && error.message.includes('JSON')) {

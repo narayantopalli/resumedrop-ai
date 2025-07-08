@@ -128,7 +128,7 @@ export default function ProfilePictureUpload({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-md font-semibold text-primary-900 dark:text-white">Profile Picture</h4>
+        <h4 className="text-base font-semibold text-primary-900 dark:text-white">Profile Picture</h4>
       </div>
 
       {/* Current/Preview Image */}

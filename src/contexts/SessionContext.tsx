@@ -20,6 +20,8 @@ interface SessionContextType {
   setResumeInfo: any;
   resumeExtractedHtml: string | null;
   setResumeExtractedHtml: any;
+  quote: { q: string; a: string } | null;
+  quoteLoading: boolean;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -36,6 +38,8 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [resumeInfo, setResumeInfo] = useState<{url: string, updated_at: string, fileExt: string} | null>(null);
   const [resumeExtractedHtml, setResumeExtractedHtml] = useState<string | null>(null);
+  const [quote, setQuote] = useState<{ q: string; a: string } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   // Memoize userMetadata values to prevent unnecessary re-renders
   const avatarUrlFromMetadata = useMemo(() => userMetadata?.avatar_url, [userMetadata?.avatar_url]);
@@ -85,6 +89,29 @@ export function SessionProvider({ children }: SessionProviderProps) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch quote function
+  const fetchQuote = async () => {
+    setQuoteLoading(true);
+    try {
+      const response = await fetch('/api/quote');
+      const data = await response.json();
+      if (data && data[0]) {
+        setQuote(data[0]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch quote:', error);
+    } finally {
+      setQuoteLoading(false);
+    }
+  };
+
+  // Fetch quote on mount if not already loaded
+  useEffect(() => {
+    if (mounted && !quote) {
+      fetchQuote();
+    }
+  }, [mounted]);
 
   const getUserMetadata = async (userId: string | undefined) => {
     if (!userId) {
@@ -166,13 +193,19 @@ export function SessionProvider({ children }: SessionProviderProps) {
         setResumeInfo(null);
         setResumeExtractedHtml(null);
         
-        // Clear all localStorage fields
+        // Clear all localStorage fields except theme
         if (typeof window !== 'undefined') {
           try {
-            localStorage.removeItem('editHistory');
-            localStorage.removeItem('currentHistoryIndex');
-            // Clear any other localStorage items that might exist
+            // Preserve the theme setting
+            const theme = localStorage.getItem('theme');
+            
+            // Clear any localStorage items that might exist
             localStorage.clear();
+            
+            // Restore the theme setting
+            if (theme) {
+              localStorage.setItem('theme', theme);
+            }
           } catch (error) {
             console.warn('Failed to clear localStorage:', error);
           }
@@ -205,7 +238,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
       resumeInfo,
       setResumeInfo,
       resumeExtractedHtml,
-      setResumeExtractedHtml
+      setResumeExtractedHtml,
+      quote,
+      quoteLoading
     }}>
       {children}
     </SessionContext.Provider>

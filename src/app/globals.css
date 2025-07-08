@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --color-primary-50: #f0f4f8;
   --color-primary-100: #d9e2ec;
@@ -272,33 +274,4 @@ body {
 .text-editor li {
   margin: 0.25rem 0;
   color: rgb(31, 41, 55);
-}
-
-/* Dark mode styles */
-.dark .text-editor {
-  color: rgb(229, 231, 235);
-}
-
-.dark .text-editor h1,
-.dark .text-editor h2,
-.dark .text-editor h3 {
-  color: rgb(255, 255, 255);
-}
-
-.dark .text-editor p {
-  color: rgb(229, 231, 235);
-}
-
-.dark .text-editor strong {
-  color: rgb(255, 255, 255);
-}
-
-.dark .text-editor em {
-  color: rgb(229, 231, 235);
-}
-
-.dark .text-editor ul,
-.dark .text-editor ol,
-.dark .text-editor li {
-  color: rgb(229, 231, 235);
 }

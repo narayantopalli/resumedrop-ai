@@ -69,8 +69,38 @@ export async function validateSignup(formData: {
 }
 
 export async function updateUserCollege(userId: string, college: string | null) {
-  const { error } = await supabase.from('profiles').upsert({ id: userId, college: college || null });
-  return { success: error === null, error: error?.message };
+  try {
+    // First check if the profile exists
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 is "not found" error, which is expected if profile doesn't exist
+      console.error('Error fetching existing profile:', fetchError);
+      return { success: false, error: fetchError.message };
+    }
+
+    if (existingProfile) {
+      // Profile exists, just update the college field
+      const { error } = await supabase
+        .from('profiles')
+        .update({ college: college || null })
+        .eq('id', userId);
+      
+      return { success: error === null, error: error?.message };
+    } else {
+      // Profile doesn't exist, we can't create it without a name
+      // Just return success since we can't update what doesn't exist
+      console.warn('Profile does not exist for user:', userId);
+      return { success: true, error: null };
+    }
+  } catch (error) {
+    console.error('Error in updateUserCollege:', error);
+    return { success: false, error: 'Internal server error' };
+  }
 }
 
 export async function signOut() {

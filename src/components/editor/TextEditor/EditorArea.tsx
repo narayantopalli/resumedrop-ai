@@ -60,7 +60,7 @@ export default function EditorArea({
           }
         }}
         className={`
-          text-editor w-full h-full p-3 sm:p-4 text-gray-800
+          text-editor w-full h-full p-3 sm:p-4 text-gray-800 bg-white
           focus:outline-none focus:ring-0 overflow-y-auto
           ${readOnly ? 'cursor-default' : 'cursor-text'}
           ${isFullscreen ? 'pb-8' : ''}

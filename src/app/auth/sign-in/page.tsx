@@ -40,13 +40,21 @@ function SignInForm() {
     setIsLoading(true);
     setError("");
     
-    // Clear localStorage when sign-in button is pressed
+    // Clear localStorage when sign-in button is pressed (preserve theme)
     if (typeof window !== 'undefined') {
       try {
+        // Preserve the theme setting
+        const theme = localStorage.getItem('theme');
+        
         localStorage.removeItem('editHistory');
         localStorage.removeItem('currentHistoryIndex');
         // Clear any other localStorage items that might exist
         localStorage.clear();
+        
+        // Restore the theme setting
+        if (theme) {
+          localStorage.setItem('theme', theme);
+        }
       } catch (error) {
         console.warn('Failed to clear localStorage on sign in:', error);
       }
@@ -85,13 +93,19 @@ function SignInForm() {
     setIsGoogleLoading(true);
     setError("");
     
-    // Clear localStorage when Google sign-in button is pressed
+    // Clear localStorage when Google sign-in button is pressed (preserve theme)
     if (typeof window !== 'undefined') {
       try {
-        localStorage.removeItem('editHistory');
-        localStorage.removeItem('currentHistoryIndex');
-        // Clear any other localStorage items that might exist
+        // Preserve the theme setting
+        const theme = localStorage.getItem('theme');
+        
+        // Clear any localStorage items that might exist
         localStorage.clear();
+        
+        // Restore the theme setting
+        if (theme) {
+          localStorage.setItem('theme', theme);
+        }
       } catch (error) {
         console.warn('Failed to clear localStorage on Google sign in:', error);
       }

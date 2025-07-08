@@ -72,6 +72,9 @@ export async function middleware(req: NextRequest) {
       '/editor',
       '/profiles',
       '/upload',
+      '/skills',
+      '/leads',
+      '/game',
       '/settings',
       '/sign-in',
       '/sign-up',
@@ -81,7 +84,9 @@ export async function middleware(req: NextRequest) {
       '/reset-password',
       '/auth/callback',
       '/favicon.ico',
-      '/logo.png'
+      '/logo.png',
+      '/logo-dark.png',
+      '/emoji.png'
     ];
 
     // Define protected routes that require authentication

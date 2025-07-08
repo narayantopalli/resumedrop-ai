@@ -93,7 +93,7 @@ export default function ProfilesSection({
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-md md:text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
                 {userMetadata.isPublic 
                   ? `Similar To You At ${userMetadata?.college}`
                   : 'Similar Profiles'
@@ -116,8 +116,10 @@ export default function ProfilesSection({
           ) : suggestedProfiles.length === 0 ? (
             <div className="flex-1 p-4 flex items-center justify-center">
               <div className="text-center">
-                <Spinner />
-                <p className="text-sm text-gray-500 dark:text-gray-400">Loading profiles...</p>
+                <Spinner size="lg" />
+                <p className="mt-4 text-gray-600 dark:text-gray-400 text-center max-w-md">
+                  Loading profiles...
+                </p>
               </div>
             </div>
           ) : (
@@ -128,7 +130,7 @@ export default function ProfilesSection({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-4 md:gap-6 lg:gap-8">
                 {isLoading ? (
                   <div className="col-span-full flex justify-center">
-                    <Spinner />
+                    <Spinner size="lg" />
                   </div>
                 ) : (
                   sortedProfilesWithLocalAvatar.map((profile, index) => (

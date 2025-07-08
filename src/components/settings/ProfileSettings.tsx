@@ -227,7 +227,7 @@ export default function ProfileSettings({ onMessage }: ProfileSettingsProps) {
 
         {/* Contact Information Section */}
         <div className="border-t border-neutral-200 dark:border-neutral-700 pt-6 xl:pt-8">
-          <h4 className="text-md xl:text-lg 2xl:text-xl font-semibold text-primary-900 dark:text-white mb-4 xl:mb-6">Contact Information</h4>
+          <h4 className="text-base xl:text-lg 2xl:text-xl font-semibold text-primary-900 dark:text-white mb-4 xl:mb-6">Contact Information</h4>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6">
             <div>
               <label htmlFor="phone" className="block text-sm xl:text-base font-medium text-neutral-700 dark:text-neutral-300 mb-1 xl:mb-2">
@@ -341,7 +341,7 @@ export default function ProfileSettings({ onMessage }: ProfileSettingsProps) {
 
         {/* Privacy Settings Section */}
         <div className="border-t border-neutral-200 dark:border-neutral-700 pt-6 xl:pt-8">
-          <h4 className="text-md xl:text-lg 2xl:text-xl font-semibold text-primary-900 dark:text-white mb-4 xl:mb-6">Privacy Settings</h4>
+          <h4 className="text-base xl:text-lg 2xl:text-xl font-semibold text-primary-900 dark:text-white mb-4 xl:mb-6">Privacy Settings</h4>
           <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-lg p-4 xl:p-6 border border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 xl:gap-4">

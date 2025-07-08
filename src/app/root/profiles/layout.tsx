@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
 
-interface MatchesLayoutProps {
+interface GameLayoutProps {
   children: ReactNode;
 }
 
-export default function MatchesLayout({ children }: MatchesLayoutProps) {
+export default function GameLayout({ children }: GameLayoutProps) {
   return (
     <>
       {children}
