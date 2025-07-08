@@ -41,16 +41,20 @@ export default function AuthLayout({
             <Logo size="lg" className="justify-center" />
           </div>
           <p className="text-xl mb-8 text-primary-700 dark:text-primary-300">
-            Improve your resume, find your dream internship!
+            The ultimate platform for college networking!
           </p>
           <div className="space-y-4">
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 dark:bg-primary-200 rounded-full"></div>
-              <span className="text-neutral-700 dark:text-neutral-300">Get instant resume advice based on industry standards</span>
+              <span className="text-neutral-700 dark:text-neutral-300">Discover opportunities for you on campus</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 dark:bg-primary-200 rounded-full"></div>
-              <span className="text-neutral-700 dark:text-neutral-300">Download your networking-ready formatted resume</span>
+              <span className="text-neutral-700 dark:text-neutral-300">Build skills that will land you your dream internship</span>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-3 h-3 bg-primary-800 dark:bg-primary-200 rounded-full"></div>
+              <span className="text-neutral-700 dark:text-neutral-300">Get instant resume improvements based on industry standards</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
               <div className="w-3 h-3 bg-primary-800 dark:bg-primary-200 rounded-full"></div>
@@ -69,7 +73,7 @@ export default function AuthLayout({
               <Logo size="md" className="justify-center" />
             </div>
             <p className="text-slate-600 dark:text-slate-400">
-              Improve your resume, find your dream internship!
+              The ultimate platform for college networking!
             </p>
           </div>
           {children}
