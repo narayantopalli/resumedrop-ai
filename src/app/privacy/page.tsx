@@ -290,9 +290,6 @@ export default function PrivacyPolicy() {
                 <p className="text-neutral-700 dark:text-neutral-300 mb-2">
                   <span className="font-semibold text-accent-600 dark:text-accent-400">Email:</span> resumedropai@gmail.com
                 </p>
-                <p className="text-neutral-700 dark:text-neutral-300">
-                  Narayan Topalli (Cornell '28)
-                </p>
               </div>
             </section>
           </div>

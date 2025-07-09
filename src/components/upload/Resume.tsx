@@ -12,6 +12,18 @@ import { plainTextToHtml } from '@/actions/html';
 import { FiFileText, FiAlertCircle } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
+// Cycling placeholders for upload processing state
+const uploadPlaceholders = [
+  "Analyzing your resume... 📊",
+  "Extracting text content... 📝",
+  "Processing document format... 📄",
+  "Optimizing for storage... 💾",
+  "Generating preview... 👀",
+  "Saving to database... 🗄️",
+  "Almost done... ⚡",
+  "Finalizing upload... ✨"
+];
+
 export default function ResumePage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +37,54 @@ export default function ResumePage() {
   // Text extraction states
   const [extractionError, setExtractionError] = useState<string | null>(null);
 
+  // Loading animation states
+  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
+
   useEffect(() => {
     setLocalPreviewUrl(resumeInfo?.url || null);
   }, [resumeInfo]);
+
+  // Cycling placeholder effect for upload animation
+  useEffect(() => {
+    if (isUploading) {
+      const interval = setInterval(() => {
+        setCurrentPlaceholderIndex((prev) => {
+          // Stop cycling after reaching the last placeholder
+          if (prev >= uploadPlaceholders.length - 1) {
+            clearInterval(interval);
+            return prev; // Keep the last placeholder
+          }
+          return prev + 1;
+        });
+      }, 1000); // Change placeholder every 3 seconds
+
+      return () => clearInterval(interval);
+    } else {
+      setCurrentPlaceholderIndex(0);
+    }
+  }, [isUploading]);
+
+  // Helper function to convert File to base64
+  const fileToBase64 = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Store additional metadata with the base64 string
+        const fileData = {
+          base64: base64String,
+          name: file.name,
+          type: file.type,
+          size: file.size
+        };
+        resolve(JSON.stringify(fileData));
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+
 
   const handleView = () => {
     setShowViewModal(true);
@@ -66,6 +123,16 @@ export default function ResumePage() {
     setError(null);
     setExtractionError(null);
     setIsUploading(true);
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('resumeText', text);
+      console.log(text);
+    }
+
+    if (!session) {
+      router.push('/sign-in');
+      return;
+    }
     
     try {
       // Convert plain text to HTML
@@ -163,6 +230,10 @@ export default function ResumePage() {
       setResumeExtractedHtml(null);
     } finally {
       setIsUploading(false);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('selectedResume');
+        localStorage.removeItem('resumeText');
+      }
       router.push("/home");
     }
   };
@@ -170,6 +241,22 @@ export default function ResumePage() {
   const handleResumeSelected = async (file: File) => {
     // Clear any previous errors
     setError(null);
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const base64Data = await fileToBase64(file);
+        localStorage.setItem('selectedResume', base64Data);
+        console.log('File saved as base64:', file.name);
+      } catch (error) {
+        console.error('Error saving file to localStorage:', error);
+      }
+    }
+
+    if (!session) {
+      router.push('/sign-in');
+      return;
+    }
+
     setIsUploading(true);
 
     try {
@@ -258,9 +345,53 @@ export default function ResumePage() {
       setResumeExtractedHtml(null);
     } finally {
       setIsUploading(false);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('selectedResume');
+        localStorage.removeItem('resumeText');
+      }
       router.push("/home");
     }
   };
+
+  useEffect(() => {
+    if (!session) return;
+    const resumeText = localStorage.getItem('resumeText');
+    console.log('resumeText', resumeText);
+    if (resumeText) {
+      handleTextSubmitted(resumeText);
+    }
+  }, []);
+
+  // Helper function to convert base64 back to File
+  const base64ToFile = async (base64Data: string): Promise<File | null> => {
+    try {
+      const fileData = JSON.parse(base64Data);
+      const base64String = fileData.base64;
+      
+      // Convert base64 to blob
+      const response = await fetch(base64String);
+      const blob = await response.blob();
+      
+      // Create new File object with original metadata
+      return new File([blob], fileData.name, { type: fileData.type });
+    } catch (error) {
+      console.error('Error converting base64 to file:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!session) return;
+    const selectedResume = localStorage.getItem('selectedResume');
+    console.log('selectedResume', selectedResume);
+    if (selectedResume) {
+      base64ToFile(selectedResume).then(file => {
+        if (file) {
+          handleResumeSelected(file);
+        }
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -334,9 +465,36 @@ export default function ResumePage() {
       {/* Uploading overlay */}
       {isUploading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 flex items-center gap-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            <p className="text-primary-900 dark:text-white">Uploading resume...</p>
+          <div className="bg-white dark:bg-neutral-800 rounded-lg p-8 flex flex-col items-center gap-6 w-96 mx-4">
+            {/* Animated spinner with gradient */}
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600"></div>
+              <div className="absolute inset-0 rounded-full h-12 w-12 border-4 border-transparent border-t-secondary-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+            </div>
+            
+            {/* Engaging message */}
+            <div className="text-center">
+              <p className="text-primary-900 dark:text-white text-lg font-medium mb-2">
+                {uploadPlaceholders[currentPlaceholderIndex]}
+              </p>
+              <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+                This will only take a moment...
+              </p>
+            </div>
+            
+            {/* Progress dots */}
+            <div className="flex space-x-2">
+              {uploadPlaceholders.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentPlaceholderIndex
+                      ? 'bg-primary-600 scale-125'
+                      : 'bg-neutral-300 dark:bg-neutral-600'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}

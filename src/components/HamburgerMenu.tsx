@@ -52,10 +52,10 @@ export default function HamburgerMenu() {
     },
   ] : [
     {
-      id: "home",
-      label: "Home",
-      icon: FiHome,
-      path: "/home",
+      id: "upload",
+      label: "Upload",
+      icon: FiUpload,
+      path: "/upload",
       action: "navigate",
     }
   ];

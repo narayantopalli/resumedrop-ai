@@ -39,25 +39,11 @@ function SignInForm() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    
-    // Clear localStorage when sign-in button is pressed (preserve theme)
+
+    // Clear edit history and current history index
     if (typeof window !== 'undefined') {
-      try {
-        // Preserve the theme setting
-        const theme = localStorage.getItem('theme');
-        
-        localStorage.removeItem('editHistory');
-        localStorage.removeItem('currentHistoryIndex');
-        // Clear any other localStorage items that might exist
-        localStorage.clear();
-        
-        // Restore the theme setting
-        if (theme) {
-          localStorage.setItem('theme', theme);
-        }
-      } catch (error) {
-        console.warn('Failed to clear localStorage on sign in:', error);
-      }
+      localStorage.removeItem('editHistory');
+      localStorage.removeItem('currentHistoryIndex');
     }
     
     try {
@@ -74,6 +60,7 @@ function SignInForm() {
         if (!updatedCollegeSuccess) {
           console.error(updatedCollegeError);
         }
+
         const { data: resumeExtractedHtml, error: resumeExtractedHtmlError } = await supabase.from('resume_text').select('extraction').eq('id', data.user.id).single();
         if (resumeExtractedHtmlError || !resumeExtractedHtml || resumeExtractedHtml.extraction === null || resumeExtractedHtml.extraction === '' || resumeExtractedHtml.extraction === undefined) {
           router.push("/upload");
@@ -93,22 +80,10 @@ function SignInForm() {
     setIsGoogleLoading(true);
     setError("");
     
-    // Clear localStorage when Google sign-in button is pressed (preserve theme)
+    // Clear edit history and current history index
     if (typeof window !== 'undefined') {
-      try {
-        // Preserve the theme setting
-        const theme = localStorage.getItem('theme');
-        
-        // Clear any localStorage items that might exist
-        localStorage.clear();
-        
-        // Restore the theme setting
-        if (theme) {
-          localStorage.setItem('theme', theme);
-        }
-      } catch (error) {
-        console.warn('Failed to clear localStorage on Google sign in:', error);
-      }
+      localStorage.removeItem('editHistory');
+      localStorage.removeItem('currentHistoryIndex');
     }
     
     try {

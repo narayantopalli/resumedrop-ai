@@ -1,8 +1,21 @@
 "use client";
 
 import HomePageContent from "@/components/home/HomePageContent";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        const resumeText = localStorage.getItem('resumeText');
+        const selectedResume = localStorage.getItem('selectedResume');
+        console.log(resumeText, selectedResume);
+        if (resumeText || selectedResume) {
+            router.push("/upload");
+        }
+    }, []);
+
     return (
         <>
             {/* Tab Content */}

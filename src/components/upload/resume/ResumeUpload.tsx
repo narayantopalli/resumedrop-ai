@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiUpload, FiAlertCircle, FiFileText, FiType, FiLock, FiLoader } from "react-icons/fi";
 import { validateResume } from "@/utils/resumeValidation";
 import TextPaste from "./TextPaste";
@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 interface ResumeUploadProps {
   error: string | null;
   setError: (error: string | null) => void;
-  onResumeSelected?: (file: File) => void;
-  onTextSubmitted?: (text: string) => void;
+  onResumeSelected: (file: File) => void;
+  onTextSubmitted: (text: string) => void;
   setLocalPreviewUrl: (url: string | null) => void;
 }
 
@@ -22,16 +22,8 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { session, loadingSession } = useSession();
-  const router = useRouter();
 
   const handleResumeUpload = async (file: File) => {
-    // Check authentication first
-    if (!session) {
-      setError('Please sign in to upload a resume.');
-      router.push('/sign-in');
-      return;
-    }
-
     // Clear any previous errors and messages
     setError(null);
 
@@ -80,11 +72,6 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    if (!session) {
-      setError('Please sign in to upload a resume.');
-      router.push('/sign-in');
-      return;
-    }
     const file = e.dataTransfer.files[0];
     if (file) {
       handleResumeUpload(file);
@@ -92,20 +79,10 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
   };
 
   const handleButtonClick = () => {
-    if (!session) {
-      setError('Please sign in to upload a resume.');
-      router.push('/sign-in');
-      return;
-    }
     fileInputRef.current?.click();
   };
 
   const handleTextSubmitted = (text: string) => {
-    if (!session) {
-      setError('Please sign in to upload a resume.');
-      router.push('/sign-in');
-      return;
-    }
     if (onTextSubmitted) {
       onTextSubmitted(text);
     }
@@ -119,33 +96,6 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
           <div className="flex items-center justify-center gap-4 py-8">
             <FiLoader className="w-6 h-6 animate-spin text-primary-600" />
             <p className="text-primary-900 dark:text-white">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show sign-in prompt if not authenticated
-  if (!session) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm border border-neutral-100 dark:border-neutral-700">
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FiLock className="w-8 h-8 text-secondary-600 dark:text-secondary-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-2">
-              Sign in Required
-            </h3>
-            <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-              Please sign in to upload your resume and access all features.
-            </p>
-            <button
-              onClick={() => router.push('/sign-in')}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Sign In
-            </button>
           </div>
         </div>
       </div>
@@ -233,8 +183,7 @@ export default function ResumeUpload({ error, setError, onResumeSelected, onText
 
       {/* Text Paste Section */}
       {uploadMode === 'text' && (
-        <TextPaste 
-          error={error} 
+        <TextPaste
           setError={setError} 
           onTextSubmitted={handleTextSubmitted}
         />

@@ -90,7 +90,7 @@ export async function middleware(req: NextRequest) {
     ];
 
     // Define protected routes that require authentication
-    const protectedRoutes = ['/settings', '/upload'];
+    const protectedRoutes = ['/settings', '/home'];
 
     // Define routes that should be blocked for unauthenticated users
     const blockedRoutes = ['/_next'];
@@ -109,12 +109,16 @@ export async function middleware(req: NextRequest) {
     // Handle blocked routes - redirect unauthenticated users to sign-in
     if (blockedRoutes.some(route => pathname.startsWith(route))) {
       // For authenticated users, allow access
-      return NextResponse.redirect(new URL('/home', req.url));
+      return NextResponse.redirect(new URL('/upload', req.url));
     }
 
     // If it's not a valid route, redirect based on authentication status
     if (!isValidRoute) {
-      return NextResponse.redirect(new URL('/home', req.url));
+      if (session) {
+        return NextResponse.redirect(new URL('/home', req.url));
+      } else {
+        return NextResponse.redirect(new URL('/upload', req.url));
+      }
     }
 
     // Check if the current path is a protected route
@@ -135,7 +139,7 @@ export async function middleware(req: NextRequest) {
 
     // Handle root path redirect based on authentication status
     if (pathname === '/') {
-      return NextResponse.redirect(new URL('/home', req.url));
+      return NextResponse.redirect(new URL('/upload', req.url));
     }
 
     return response;

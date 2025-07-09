@@ -4,12 +4,11 @@ import { useState } from "react";
 import { FiFileText, FiAlertCircle, FiCopy, FiUpload } from "react-icons/fi";
 
 interface TextPasteProps {
-  error: string | null;
   setError: (error: string | null) => void;
   onTextSubmitted?: (text: string) => void;
 }
 
-export default function TextPaste({ error, setError, onTextSubmitted }: TextPasteProps) {
+export default function TextPaste({ setError, onTextSubmitted }: TextPasteProps) {
   const [pastedText, setPastedText] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -120,15 +119,6 @@ export default function TextPaste({ error, setError, onTextSubmitted }: TextPast
           </div>
         </div>
       </div>
-
-      {error && (
-        <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <FiAlertCircle className="w-5 h-5 text-error-500 flex-shrink-0" />
-            <p className="text-error-700 dark:text-error-300 text-sm">{error}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 
