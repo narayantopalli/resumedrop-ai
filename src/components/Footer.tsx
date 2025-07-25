@@ -58,7 +58,7 @@ export default function Footer() {
               © 2025 resumedrop.ai. All rights reserved.
             </p>
             <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-2 md:mt-0">
-              Built by <span className="font-medium text-primary-700 dark:text-primary-300">Narayan Topalli</span> (Cornell '28)
+              A <span className="font-medium text-primary-700 dark:text-primary-300">Narayan Topalli</span> Production
             </p>
           </div>
         </div>
