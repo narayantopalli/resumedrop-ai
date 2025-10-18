@@ -1,8 +1,6 @@
-# ResumeDrop AI 🚀
+# [ResumeDrop AI 🚀](https://resumedrop.ai)
 
 > **AI-Powered Networking And Resume Management Platform**
-
-## [ResumeDrop AI](https://resumedrop.ai)
 
 ResumeDrop AI is a resume building and networking platform that revolutionizes professional connections by using AI to match users with opportunities based on their skills, experience, and interests extracted from their resumes.
 
